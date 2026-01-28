@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, Palette, Plug, Download, Eye, EyeOff } from 'lucide-react';
+import { Settings, Palette, Plug } from 'lucide-react';
 import { useLPEditor } from '../../hooks/useLPEditor';
 import { SectionList } from './SectionList';
 import { HeroEditor } from './HeroEditor';

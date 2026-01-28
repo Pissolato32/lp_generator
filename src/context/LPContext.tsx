@@ -38,7 +38,7 @@ function lpReducer(state: LPState, action: LPAction): LPState {
                 ...state,
                 config: {
                     ...state.config,
-                    sections: [...state.config.sections, action.payload],
+                    sections: [...state.config.sections, action.payload] as Section[],
                     updatedAt: new Date(),
                 },
             };
@@ -52,7 +52,7 @@ function lpReducer(state: LPState, action: LPAction): LPState {
                         section.id === action.payload.id
                             ? { ...section, ...action.payload.updates }
                             : section
-                    ),
+                    ) as Section[],
                     updatedAt: new Date(),
                 },
             };
