@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Download, Eye, EyeOff, Monitor, Tablet, Smartphone, Sparkles } from 'lucide-react';
+import { Download, Eye, EyeOff, Monitor, Tablet, Smartphone, Sparkles, Wand2 } from 'lucide-react';
 import { LPProvider } from './context/LPContext';
 import { useLPEditor } from './hooks/useLPEditor';
 import { EditorSidebar } from './components/editor/EditorSidebar';
 import { LivePreview } from './components/preview/LivePreview';
 import { TemplateModal } from './components/templates/TemplateModal';
+import { GeneratorWizard } from './components/generator/GeneratorWizard';
 
 function AppContent() {
   const [selectedSectionId, setSelectedSectionId] = useState<string>();
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [showPreview, setShowPreview] = useState(true);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showGeneratorWizard, setShowGeneratorWizard] = useState(false);
   const { config } = useLPEditor();
 
   const previewWidths = {
@@ -68,8 +70,15 @@ function AppContent() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowGeneratorWizard(true)}
+            className="px-4 py-2 bg-linear-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-lg shadow-soft hover:shadow-soft-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+          >
+            <Wand2 size={18} />
+            Gerar com IA
+          </button>
+          <button
             onClick={() => setShowTemplateModal(true)}
-            className="px-4 py-2 bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg shadow-soft hover:shadow-soft-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+            className="px-4 py-2 bg-white text-gray-700 border border-gray-200 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
             <Sparkles size={18} />
             Templates
@@ -134,6 +143,12 @@ function AppContent() {
       <TemplateModal
         isOpen={showTemplateModal}
         onClose={() => setShowTemplateModal(false)}
+      />
+
+      {/* Generator Wizard */}
+      <GeneratorWizard
+        isOpen={showGeneratorWizard}
+        onClose={() => setShowGeneratorWizard(false)}
       />
     </div>
   );

@@ -102,7 +102,7 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
                                         placeholder={field.placeholder}
                                         required={field.required}
                                         className="w-full px-6 py-4 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 text-lg"
-                                        style={{ borderColor: primaryColor, focusRingColor: primaryColor }}
+                                        style={{ borderColor: primaryColor, '--tw-ring-color': primaryColor } as React.CSSProperties}
                                     />
                                 ))}
                                 <button
