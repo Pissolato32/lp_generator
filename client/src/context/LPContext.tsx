@@ -1,8 +1,11 @@
 import React, { createContext, use, useReducer, ReactNode } from 'react';
-import type { LandingPageConfig, Section, DesignConfig, IntegrationConfig } from '../types';
+import type { LandingPageConfig, Section, DesignConfig, IntegrationConfig, ChatMessage } from '../types';
 
 interface LPState {
     config: LandingPageConfig;
+    sessionId: string | null;
+    messages: ChatMessage[];
+    isChatMode: boolean;
 }
 
 type LPAction =
@@ -12,7 +15,10 @@ type LPAction =
     | { type: 'REORDER_SECTIONS'; payload: Section[] }
     | { type: 'UPDATE_DESIGN'; payload: Partial<DesignConfig> }
     | { type: 'UPDATE_INTEGRATIONS'; payload: Partial<IntegrationConfig> }
-    | { type: 'LOAD_CONFIG'; payload: LandingPageConfig };
+    | { type: 'LOAD_CONFIG'; payload: LandingPageConfig }
+    | { type: 'SET_SESSION'; payload: { sessionId: string; messages: ChatMessage[] } }
+    | { type: 'ADD_MESSAGE'; payload: ChatMessage }
+    | { type: 'SET_CHAT_MODE'; payload: boolean };
 
 const initialState: LPState = {
     config: {
@@ -29,6 +35,9 @@ const initialState: LPState = {
         createdAt: new Date(),
         updatedAt: new Date(),
     },
+    sessionId: null,
+    messages: [],
+    isChatMode: true,
 };
 
 function lpReducer(state: LPState, action: LPAction): LPState {
@@ -106,6 +115,25 @@ function lpReducer(state: LPState, action: LPAction): LPState {
                 config: action.payload,
             };
 
+        case 'SET_SESSION':
+            return {
+                ...state,
+                sessionId: action.payload.sessionId,
+                messages: action.payload.messages,
+            };
+
+        case 'ADD_MESSAGE':
+            return {
+                ...state,
+                messages: [...state.messages, action.payload],
+            };
+
+        case 'SET_CHAT_MODE':
+            return {
+                ...state,
+                isChatMode: action.payload,
+            };
+
         default:
             return state;
     }
@@ -121,23 +149,12 @@ const LPContext = createContext<LPContextValue | undefined>(undefined);
 export function LPProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(lpReducer, initialState);
 
-    // Auto-save to localStorage
+    // Auto-save session ID to localStorage
     React.useEffect(() => {
-        localStorage.setItem('lp-config', JSON.stringify(state.config));
-    }, [state.config]);
-
-    // Load from localStorage on mount
-    React.useEffect(() => {
-        const saved = localStorage.getItem('lp-config');
-        if (saved) {
-            try {
-                const config = JSON.parse(saved) as LandingPageConfig;
-                dispatch({ type: 'LOAD_CONFIG', payload: config });
-            } catch (error) {
-                console.error('Failed to load saved config:', error);
-            }
+        if (state.sessionId) {
+            localStorage.setItem('lp-session-id', state.sessionId);
         }
-    }, []);
+    }, [state.sessionId]);
 
     return (
         <LPContext value={{ state, dispatch }}>
