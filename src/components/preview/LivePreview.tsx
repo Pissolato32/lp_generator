@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { Section } from '../../types';
 import { HeroSection } from '../sections/HeroSection';
 import { SocialProofSection } from '../sections/SocialProofSection';
@@ -9,7 +10,9 @@ interface LivePreviewProps {
 }
 
 export function LivePreview({ sections, primaryColor, onSectionClick }: LivePreviewProps) {
-    const sortedSections = [...sections].sort((a, b) => a.order - b.order);
+    const sortedSections = useMemo(() => {
+        return [...sections].sort((a, b) => a.order - b.order);
+    }, [sections]);
 
     return (
         <div className="w-full h-full overflow-y-auto bg-white">
