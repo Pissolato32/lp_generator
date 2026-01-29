@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { templatePresets, type TemplatePreset } from '../../utils/templatePresets';
 import { useLPContext } from '../../context/LPContext';
@@ -13,6 +13,12 @@ export function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
     const { dispatch } = useLPContext();
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
+    const filteredTemplates = useMemo(() => {
+        return selectedCategory === 'all'
+            ? templatePresets
+            : templatePresets.filter((t) => t.businessType === selectedCategory);
+    }, [selectedCategory]);
+
     if (!isOpen) return null;
 
     const categories = [
@@ -23,11 +29,6 @@ export function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
         { id: 'lead-magnet', name: 'Lead Magnet', icon: '🎁' },
         { id: 'webinar', name: 'Webinar', icon: '📺' },
     ];
-
-    const filteredTemplates =
-        selectedCategory === 'all'
-            ? templatePresets
-            : templatePresets.filter((t) => t.businessType === selectedCategory);
 
     const handleSelectTemplate = (template: TemplatePreset) => {
         if (confirm(`Deseja aplicar o template "${template.name}"? Isso substituirá sua configuração atual.`)) {
