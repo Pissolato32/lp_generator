@@ -8,7 +8,7 @@ interface HeroEditorProps {
 export function HeroEditor({ section }: HeroEditorProps) {
     const { updateSection } = useLPEditor();
 
-    const handleUpdate = (field: string, value: any) => {
+    const handleUpdate = (field: keyof HeroSection, value: string | boolean) => {
         updateSection(section.id, { [field]: value });
     };
 
@@ -79,7 +79,7 @@ export function HeroEditor({ section }: HeroEditorProps) {
                     </label>
                     <input
                         type="url"
-                        value={section.ctaUrl || ''}
+                        value={section.ctaUrl ?? ''}
                         onChange={(e) => handleUpdate('ctaUrl', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="https://..."
@@ -94,7 +94,7 @@ export function HeroEditor({ section }: HeroEditorProps) {
                     </label>
                     <input
                         type="url"
-                        value={section.videoUrl || ''}
+                        value={section.videoUrl ?? ''}
                         onChange={(e) => handleUpdate('videoUrl', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="YouTube, Vimeo ou URL direta"
@@ -112,7 +112,7 @@ export function HeroEditor({ section }: HeroEditorProps) {
                     </label>
                     <input
                         type="url"
-                        value={section.backgroundImage || ''}
+                        value={section.backgroundImage ?? ''}
                         onChange={(e) => handleUpdate('backgroundImage', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="URL da imagem"

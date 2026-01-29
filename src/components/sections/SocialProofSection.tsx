@@ -90,6 +90,7 @@ export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: Social
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
                             {logos.map((logo, index) => (
                                 <div
+                                    // eslint-disable-next-line react-x/no-array-index-key
                                     key={index}
                                     className="flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 opacity-60 hover:opacity-100"
                                 >

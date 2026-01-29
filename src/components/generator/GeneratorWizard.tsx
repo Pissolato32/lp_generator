@@ -73,7 +73,7 @@ export function GeneratorWizard({ isOpen, onClose }: GeneratorWizardProps) {
 
                 {/* Form */}
                 <div className="p-6 overflow-y-auto flex-1">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Nome do Produto ou Serviço
@@ -166,7 +166,7 @@ export function GeneratorWizard({ isOpen, onClose }: GeneratorWizardProps) {
                         Cancelar
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        onClick={(e) => void handleSubmit(e)}
                         disabled={isGenerating || !formData.productName || !formData.productDescription}
                         className={`
                             px-8 py-2 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg

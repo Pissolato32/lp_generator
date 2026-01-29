@@ -43,7 +43,7 @@ export function SocialProofEditor({ section }: SocialProofEditorProps) {
     const addLogo = () => {
         if (newLogoUrl.trim()) {
             updateSection(section.id, {
-                logos: [...(section.logos || []), newLogoUrl.trim()],
+                logos: [...(section.logos ?? []), newLogoUrl.trim()],
             });
             setNewLogoUrl('');
         }
@@ -137,7 +137,7 @@ export function SocialProofEditor({ section }: SocialProofEditorProps) {
                                 <label className="block text-xs text-gray-600 mb-1">Avatar (URL)</label>
                                 <input
                                     type="text"
-                                    value={testimonial.avatar || ''}
+                                    value={testimonial.avatar ?? ''}
                                     onChange={(e) => updateTestimonial(testimonial.id, { avatar: e.target.value })}
                                     placeholder="https://exemplo.com/avatar.jpg"
                                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -147,7 +147,7 @@ export function SocialProofEditor({ section }: SocialProofEditorProps) {
                             {section.showRatings && (
                                 <div>
                                     <label className="block text-xs text-gray-600 mb-2">
-                                        Avaliação: {testimonial.rating || 5} estrelas
+                                        Avaliação: {testimonial.rating ?? 5} estrelas
                                     </label>
                                     <div className="flex gap-1">
                                         {[1, 2, 3, 4, 5].map((star) => (
@@ -159,7 +159,7 @@ export function SocialProofEditor({ section }: SocialProofEditorProps) {
                                                 <Star
                                                     size={20}
                                                     className={
-                                                        star <= (testimonial.rating || 5)
+                                                        star <= (testimonial.rating ?? 5)
                                                             ? 'fill-yellow-400 text-yellow-400'
                                                             : 'text-gray-300'
                                                     }
@@ -208,6 +208,7 @@ export function SocialProofEditor({ section }: SocialProofEditorProps) {
                 <div className="space-y-2">
                     {section.logos?.map((logo, index) => (
                         <div
+                            // eslint-disable-next-line react-x/no-array-index-key
                             key={index}
                             className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200"
                         >
@@ -216,7 +217,7 @@ export function SocialProofEditor({ section }: SocialProofEditorProps) {
                                 type="text"
                                 value={logo}
                                 onChange={(e) => {
-                                    const newLogos = [...(section.logos || [])];
+                                    const newLogos = [...(section.logos ?? [])];
                                     newLogos[index] = e.target.value;
                                     updateSection(section.id, { logos: newLogos });
                                 }}

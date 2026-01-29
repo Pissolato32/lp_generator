@@ -147,6 +147,6 @@ function createDefaultSection(type: SectionType, order: number): Section {
             };
 
         default:
-            throw new Error(`Unknown section type: ${type}`);
+            throw new Error('Unknown section type');
     }
 }

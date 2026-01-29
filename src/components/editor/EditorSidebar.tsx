@@ -139,7 +139,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                             </label>
                             <select
                                 value={config.design.buttonStyle}
-                                onChange={(e) => updateDesign({ buttonStyle: e.target.value as any })}
+                                onChange={(e) => updateDesign({ buttonStyle: e.target.value as 'rounded' | 'square' | 'pill' })}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                             >
                                 <option value="rounded">Arredondado</option>
@@ -167,7 +167,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                             </label>
                             <input
                                 type="url"
-                                value={config.integrations.webhookUrl || ''}
+                                value={config.integrations.webhookUrl ?? ''}
                                 onChange={(e) => updateIntegrations({ webhookUrl: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="https://hooks.zapier.com/..."
@@ -185,7 +185,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                             </label>
                             <input
                                 type="text"
-                                value={config.integrations.gtmId || ''}
+                                value={config.integrations.gtmId ?? ''}
                                 onChange={(e) => updateIntegrations({ gtmId: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="GTM-XXXXXXX"
@@ -198,7 +198,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                             </label>
                             <input
                                 type="text"
-                                value={config.integrations.facebookPixelId || ''}
+                                value={config.integrations.facebookPixelId ?? ''}
                                 onChange={(e) => updateIntegrations({ facebookPixelId: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="123456789012345"

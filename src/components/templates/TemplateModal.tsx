@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { templatePresets, type TemplatePreset } from '../../utils/templatePresets';
 import { useLPContext } from '../../context/LPContext';
+import { LandingPageConfig } from '../../types';
 
 interface TemplateModalProps {
     isOpen: boolean;
@@ -36,7 +37,7 @@ export function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
-            dispatch({ type: 'LOAD_CONFIG', payload: newConfig as any });
+            dispatch({ type: 'LOAD_CONFIG', payload: newConfig as LandingPageConfig });
             onClose();
         }
     };
@@ -107,13 +108,13 @@ export function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
                                         <div className="w-3 h-3 rounded-full bg-blue-500" />
                                         <span className="text-gray-700 font-medium">
                                             {template.config.sections?.[0]?.type === 'hero'
-                                                ? (template.config.sections[0] as any).headline
+                                                ? template.config.sections[0].headline
                                                 : 'Headline'}
                                         </span>
                                     </div>
                                     <div className="text-gray-500 line-clamp-2">
                                         {template.config.sections?.[0]?.type === 'hero'
-                                            ? (template.config.sections[0] as any).subheadline
+                                            ? template.config.sections[0].subheadline
                                             : 'Subheadline'}
                                     </div>
                                     <div
@@ -121,7 +122,7 @@ export function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
                                         style={{ backgroundColor: template.config.design?.primaryColor }}
                                     >
                                         {template.config.sections?.[0]?.type === 'hero'
-                                            ? (template.config.sections[0] as any).ctaText
+                                            ? template.config.sections[0].ctaText
                                             : 'CTA'}
                                     </div>
                                 </div>
