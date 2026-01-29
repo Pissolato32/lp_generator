@@ -67,7 +67,7 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
                             </form>
                         ) : (
                             <a
-                                href={ctaUrl || '#'}
+                                href={ctaUrl ?? '#'}
                                 className="inline-block px-12 py-5 text-white text-xl font-bold rounded-lg shadow-soft-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-scale-in"
                                 style={{ backgroundColor: primaryColor }}
                             >
@@ -115,7 +115,7 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
                             </form>
                         ) : (
                             <a
-                                href={ctaUrl || '#'}
+                                href={ctaUrl ?? '#'}
                                 className="inline-block px-10 py-4 text-white text-lg font-bold rounded-lg shadow-soft hover:shadow-soft-lg transform hover:scale-105 transition-all duration-200"
                                 style={{ backgroundColor: primaryColor }}
                             >
@@ -261,7 +261,7 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
                             </form>
                         ) : (
                             <a
-                                href={ctaUrl || '#'}
+                                href={ctaUrl ?? '#'}
                                 className="inline-block px-12 py-5 text-white text-xl font-bold rounded-lg shadow-soft-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-scale-in"
                                 style={{ backgroundColor: primaryColor }}
                             >
@@ -279,11 +279,11 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
 
 // Helper functions for video embeds
 function getYouTubeEmbedUrl(url: string): string {
-    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
+    const videoId = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/.exec(url)?.[1];
     return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
 }
 
 function getVimeoEmbedUrl(url: string): string {
-    const videoId = url.match(/vimeo\.com\/(\d+)/)?.[1];
+    const videoId = /vimeo\.com\/(\d+)/.exec(url)?.[1];
     return videoId ? `https://player.vimeo.com/video/${videoId}` : url;
 }

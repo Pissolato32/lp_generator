@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, use, useReducer, ReactNode } from 'react';
 import type { LandingPageConfig, Section, DesignConfig, IntegrationConfig } from '../types';
 
 interface LPState {
@@ -131,7 +131,7 @@ export function LPProvider({ children }: { children: ReactNode }) {
         const saved = localStorage.getItem('lp-config');
         if (saved) {
             try {
-                const config = JSON.parse(saved);
+                const config = JSON.parse(saved) as LandingPageConfig;
                 dispatch({ type: 'LOAD_CONFIG', payload: config });
             } catch (error) {
                 console.error('Failed to load saved config:', error);
@@ -140,14 +140,15 @@ export function LPProvider({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <LPContext.Provider value={{ state, dispatch }}>
+        <LPContext value={{ state, dispatch }}>
             {children}
-        </LPContext.Provider>
+        </LPContext>
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLPContext() {
-    const context = useContext(LPContext);
+    const context = use(LPContext);
     if (!context) {
         throw new Error('useLPContext must be used within LPProvider');
     }
