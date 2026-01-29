@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Settings, Palette, Plug } from 'lucide-react';
 import { useLPEditor } from '../../hooks/useLPEditor';
 import { SectionList } from './SectionList';
@@ -16,7 +16,10 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
     const [activeTab, setActiveTab] = useState<Tab>('sections');
     const { config, updateDesign, updateIntegrations } = useLPEditor();
 
-    const selectedSection = config.sections.find((s) => s.id === selectedSectionId);
+    const selectedSection = useMemo(
+        () => config.sections.find((s) => s.id === selectedSectionId),
+        [config.sections, selectedSectionId]
+    );
 
     return (
         <div className="h-full flex flex-col bg-white border-r border-gray-200">
