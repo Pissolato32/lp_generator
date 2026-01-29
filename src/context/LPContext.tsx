@@ -1,4 +1,4 @@
-import React, { createContext, use, useReducer, ReactNode } from 'react';
+import React, { createContext, use, useReducer, ReactNode, useRef } from 'react';
 import type { LandingPageConfig, Section, DesignConfig, IntegrationConfig } from '../types';
 
 interface LPState {
@@ -121,10 +121,29 @@ const LPContext = createContext<LPContextValue | undefined>(undefined);
 export function LPProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(lpReducer, initialState);
 
+    // Keep ref updated for unmount save
+    const configRef = useRef(state.config);
+    React.useEffect(() => {
+        configRef.current = state.config;
+    });
+
     // Auto-save to localStorage
     React.useEffect(() => {
-        localStorage.setItem('lp-config', JSON.stringify(state.config));
+        const handler = setTimeout(() => {
+            localStorage.setItem('lp-config', JSON.stringify(state.config));
+        }, 1000);
+
+        return () => {
+            clearTimeout(handler);
+        };
     }, [state.config]);
+
+    // Save on unmount to prevent data loss
+    React.useEffect(() => {
+        return () => {
+            localStorage.setItem('lp-config', JSON.stringify(configRef.current));
+        };
+    }, []);
 
     // Load from localStorage on mount
     React.useEffect(() => {
