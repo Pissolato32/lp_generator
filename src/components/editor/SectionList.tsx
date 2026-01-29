@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { useLPEditor } from '../../hooks/useLPEditor';
-import { SectionType } from '../../types';
+import { SectionType, Section } from '../../types';
 
 interface SectionListProps {
     onSectionSelect: (sectionId: string) => void;
@@ -30,7 +30,9 @@ export function SectionList({ onSectionSelect, selectedSectionId }: SectionListP
         }
     };
 
-    const sortedSections = [...config.sections].sort((a, b) => a.order - b.order);
+    const sortedSections = useMemo(() => {
+        return [...config.sections].sort((a, b) => a.order - b.order);
+    }, [config.sections]);
 
     return (
         <div className="p-4 space-y-4">
@@ -174,7 +176,7 @@ function getSectionLabel(type: string): string {
     return labels[type] || type;
 }
 
-function getSectionPreview(section: any): string {
+function getSectionPreview(section: Section): string {
     if (section.type === 'hero') {
         return section.headline?.substring(0, 30) || 'Sem título';
     }
