@@ -120,6 +120,7 @@ function AppContent() {
               <LivePreview
                 sections={config.sections}
                 primaryColor={config.design.primaryColor}
+                integrations={config.integrations}
                 onSectionClick={setSelectedSectionId}
               />
             </div>

@@ -1,11 +1,14 @@
+import { useState } from 'react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { HeroSection as HeroSectionType } from '../../types';
 
 interface HeroSectionProps {
     section: HeroSectionType;
     primaryColor?: string;
+    webhookUrl?: string;
 }
 
-export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionProps) {
+export function HeroSection({ section, primaryColor = '#0ea5e9', webhookUrl }: HeroSectionProps) {
     const {
         variant,
         headline,
@@ -18,11 +21,68 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
         formFields = [],
     } = section;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Form submission will be handled by integration webhook
-        console.log('Form submitted');
+
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        const submitAsync = async () => {
+            if (!webhookUrl) {
+                console.log('Form submitted (no webhook configured)');
+                setFormStatus('success');
+                // Reset status after 3 seconds for demo purposes if no webhook
+                setTimeout(() => setFormStatus('idle'), 3000);
+                return;
+            }
+
+            setFormStatus('submitting');
+            setErrorMessage(null);
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit form');
+                }
+
+                setFormStatus('success');
+            } catch (error) {
+                console.error('Form submission error:', error);
+                setFormStatus('error');
+                setErrorMessage('Erro ao enviar formulário. Tente novamente.');
+            }
+        };
+
+        void submitAsync();
     };
+
+    const renderSuccessMessage = () => (
+        <div className="bg-green-50 text-green-800 p-6 rounded-lg text-center animate-fade-in w-full max-w-md mx-auto">
+            <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-600" />
+            <p className="font-semibold text-lg">Inscrição realizada!</p>
+            <p>Obrigado pelo seu interesse.</p>
+        </div>
+    );
+
+    const renderErrorMessage = () => (
+        errorMessage && (
+            <div className="bg-red-50 text-red-800 p-3 rounded-lg flex items-center gap-2 animate-fade-in text-sm">
+                <AlertCircle size={16} className="shrink-0" />
+                <p>{errorMessage}</p>
+            </div>
+        )
+    );
 
     // Full-width variant
     if (variant === 'full-width') {
@@ -46,25 +106,33 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
 
                     <div className="flex justify-center w-full">
                         {showForm ? (
-                            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 animate-scale-in">
-                                {formFields.map((field) => (
-                                    <input
-                                        key={field.id}
-                                        type={field.type}
-                                        placeholder={field.placeholder}
-                                        required={field.required}
-                                        className="w-full px-6 py-4 rounded-lg text-gray-900 text-lg focus:ring-4 focus:ring-white/50 outline-none"
-                                        style={{ borderColor: primaryColor }}
-                                    />
-                                ))}
-                                <button
-                                    type="submit"
-                                    className="w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                    style={{ backgroundColor: primaryColor }}
-                                >
-                                    {ctaText}
-                                </button>
-                            </form>
+                            formStatus === 'success' ? (
+                                renderSuccessMessage()
+                            ) : (
+                                <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 animate-scale-in">
+                                    {formFields.map((field) => (
+                                        <input
+                                            key={field.id}
+                                            name={field.label}
+                                            type={field.type}
+                                            placeholder={field.placeholder}
+                                            required={field.required}
+                                            className="w-full px-6 py-4 rounded-lg text-gray-900 text-lg focus:ring-4 focus:ring-white/50 outline-none"
+                                            style={{ borderColor: primaryColor }}
+                                            disabled={formStatus === 'submitting'}
+                                        />
+                                    ))}
+                                    {renderErrorMessage()}
+                                    <button
+                                        type="submit"
+                                        disabled={formStatus === 'submitting'}
+                                        className="w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                                        style={{ backgroundColor: primaryColor }}
+                                    >
+                                        {formStatus === 'submitting' ? <Loader2 className="animate-spin" /> : ctaText}
+                                    </button>
+                                </form>
+                            )
                         ) : (
                             <a
                                 href={ctaUrl ?? '#'}
@@ -94,25 +162,33 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
                         </p>
 
                         {showForm ? (
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                {formFields.map((field) => (
-                                    <input
-                                        key={field.id}
-                                        type={field.type}
-                                        placeholder={field.placeholder}
-                                        required={field.required}
-                                        className="w-full px-6 py-4 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 text-lg"
-                                        style={{ borderColor: primaryColor, '--tw-ring-color': primaryColor } as React.CSSProperties}
-                                    />
-                                ))}
-                                <button
-                                    type="submit"
-                                    className="w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-soft hover:shadow-soft-lg transform hover:scale-105 transition-all duration-200"
-                                    style={{ backgroundColor: primaryColor }}
-                                >
-                                    {ctaText}
-                                </button>
-                            </form>
+                            formStatus === 'success' ? (
+                                renderSuccessMessage()
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    {formFields.map((field) => (
+                                        <input
+                                            key={field.id}
+                                            name={field.label}
+                                            type={field.type}
+                                            placeholder={field.placeholder}
+                                            required={field.required}
+                                            className="w-full px-6 py-4 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 text-lg"
+                                            style={{ borderColor: primaryColor, '--tw-ring-color': primaryColor } as React.CSSProperties}
+                                            disabled={formStatus === 'submitting'}
+                                        />
+                                    ))}
+                                    {renderErrorMessage()}
+                                    <button
+                                        type="submit"
+                                        disabled={formStatus === 'submitting'}
+                                        className="w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-soft hover:shadow-soft-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                                        style={{ backgroundColor: primaryColor }}
+                                    >
+                                        {formStatus === 'submitting' ? <Loader2 className="animate-spin" /> : ctaText}
+                                    </button>
+                                </form>
+                            )
                         ) : (
                             <a
                                 href={ctaUrl ?? '#'}
@@ -167,24 +243,32 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
 
                     <div className="flex justify-center w-full">
                         {showForm && (
-                            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 bg-white/10 backdrop-blur-lg p-8 rounded-2xl animate-scale-in">
-                                {formFields.map((field) => (
-                                    <input
-                                        key={field.id}
-                                        type={field.type}
-                                        placeholder={field.placeholder}
-                                        required={field.required}
-                                        className="w-full px-6 py-4 rounded-lg text-gray-900 text-lg focus:ring-4 focus:ring-white/50 outline-none"
-                                    />
-                                ))}
-                                <button
-                                    type="submit"
-                                    className="w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                    style={{ backgroundColor: primaryColor }}
-                                >
-                                    {ctaText}
-                                </button>
-                            </form>
+                            formStatus === 'success' ? (
+                                renderSuccessMessage()
+                            ) : (
+                                <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 bg-white/10 backdrop-blur-lg p-8 rounded-2xl animate-scale-in">
+                                    {formFields.map((field) => (
+                                        <input
+                                            key={field.id}
+                                            name={field.label}
+                                            type={field.type}
+                                            placeholder={field.placeholder}
+                                            required={field.required}
+                                            className="w-full px-6 py-4 rounded-lg text-gray-900 text-lg focus:ring-4 focus:ring-white/50 outline-none"
+                                            disabled={formStatus === 'submitting'}
+                                        />
+                                    ))}
+                                    {renderErrorMessage()}
+                                    <button
+                                        type="submit"
+                                        disabled={formStatus === 'submitting'}
+                                        className="w-full px-8 py-4 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                                        style={{ backgroundColor: primaryColor }}
+                                    >
+                                        {formStatus === 'submitting' ? <Loader2 className="animate-spin" /> : ctaText}
+                                    </button>
+                                </form>
+                            )
                         )}
                     </div>
                 </div>
@@ -240,25 +324,33 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
                     {/* CTA Below Video */}
                     <div className="flex justify-center w-full">
                         {showForm ? (
-                            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 animate-scale-in">
-                                {formFields.map((field) => (
-                                    <input
-                                        key={field.id}
-                                        type={field.type}
-                                        placeholder={field.placeholder}
-                                        required={field.required}
-                                        className="w-full px-6 py-4 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 text-lg"
-                                        style={{ borderColor: primaryColor }}
-                                    />
-                                ))}
-                                <button
-                                    type="submit"
-                                    className="w-full px-8 py-5 text-white text-xl font-bold rounded-lg shadow-soft-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                    style={{ backgroundColor: primaryColor }}
-                                >
-                                    {ctaText}
-                                </button>
-                            </form>
+                            formStatus === 'success' ? (
+                                renderSuccessMessage()
+                            ) : (
+                                <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 animate-scale-in">
+                                    {formFields.map((field) => (
+                                        <input
+                                            key={field.id}
+                                            name={field.label}
+                                            type={field.type}
+                                            placeholder={field.placeholder}
+                                            required={field.required}
+                                            className="w-full px-6 py-4 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 text-lg"
+                                            style={{ borderColor: primaryColor }}
+                                            disabled={formStatus === 'submitting'}
+                                        />
+                                    ))}
+                                    {renderErrorMessage()}
+                                    <button
+                                        type="submit"
+                                        disabled={formStatus === 'submitting'}
+                                        className="w-full px-8 py-5 text-white text-xl font-bold rounded-lg shadow-soft-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                                        style={{ backgroundColor: primaryColor }}
+                                    >
+                                        {formStatus === 'submitting' ? <Loader2 className="animate-spin" /> : ctaText}
+                                    </button>
+                                </form>
+                            )
                         ) : (
                             <a
                                 href={ctaUrl ?? '#'}

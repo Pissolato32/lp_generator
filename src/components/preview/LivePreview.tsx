@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
-import type { Section } from '../../types';
+import type { Section, IntegrationConfig } from '../../types';
 import { HeroSection } from '../sections/HeroSection';
 import { SocialProofSection } from '../sections/SocialProofSection';
 
 interface LivePreviewProps {
     sections: Section[];
     primaryColor: string;
+    integrations?: IntegrationConfig;
     onSectionClick?: (sectionId: string) => void;
 }
 
-export function LivePreview({ sections, primaryColor, onSectionClick }: LivePreviewProps) {
+export function LivePreview({ sections, primaryColor, integrations, onSectionClick }: LivePreviewProps) {
     const sortedSections = useMemo(() => {
         return [...sections].sort((a, b) => a.order - b.order);
     }, [sections]);
@@ -40,7 +41,11 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
                         </div>
 
                         {section.type === 'hero' && (
-                            <HeroSection section={section} primaryColor={primaryColor} />
+                            <HeroSection
+                                section={section}
+                                primaryColor={primaryColor}
+                                webhookUrl={integrations?.webhookUrl}
+                            />
                         )}
 
                         {section.type === 'social-proof' && (
