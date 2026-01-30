@@ -1,37 +1,35 @@
+import { useCallback } from 'react';
 import { useLPContext } from '../context/LPContext';
-import type { Section, SectionType, HeroSection } from '../types';
+import type { Section, SectionType, HeroSection, DesignConfig, IntegrationConfig } from '../types';
 
 export function useLPEditor() {
     const { state, dispatch } = useLPContext();
 
-    const addSection = (type: SectionType) => {
+    const addSection = useCallback((type: SectionType) => {
         const newSection = createDefaultSection(type, state.config.sections.length);
         dispatch({ type: 'ADD_SECTION', payload: newSection });
         return newSection.id;
-    };
+    }, [dispatch, state.config.sections.length]);
 
-    const updateSection = (id: string, updates: Partial<Section>) => {
+    const updateSection = useCallback((id: string, updates: Partial<Section>) => {
         dispatch({ type: 'UPDATE_SECTION', payload: { id, updates } });
-    };
+    }, [dispatch]);
 
-    const deleteSection = (id: string) => {
+    const deleteSection = useCallback((id: string) => {
         dispatch({ type: 'DELETE_SECTION', payload: id });
-    };
+    }, [dispatch]);
 
-    const moveSection = (fromIndex: number, toIndex: number) => {
-        const sections = [...state.config.sections];
-        const [removed] = sections.splice(fromIndex, 1);
-        sections.splice(toIndex, 0, removed);
-        dispatch({ type: 'REORDER_SECTIONS', payload: sections });
-    };
+    const moveSection = useCallback((fromIndex: number, toIndex: number) => {
+        dispatch({ type: 'MOVE_SECTION', payload: { fromIndex, toIndex } });
+    }, [dispatch]);
 
-    const updateDesign = (updates: Partial<typeof state.config.design>) => {
+    const updateDesign = useCallback((updates: Partial<DesignConfig>) => {
         dispatch({ type: 'UPDATE_DESIGN', payload: updates });
-    };
+    }, [dispatch]);
 
-    const updateIntegrations = (updates: Partial<typeof state.config.integrations>) => {
+    const updateIntegrations = useCallback((updates: Partial<IntegrationConfig>) => {
         dispatch({ type: 'UPDATE_INTEGRATIONS', payload: updates });
-    };
+    }, [dispatch]);
 
     return {
         config: state.config,

@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { Plus } from 'lucide-react';
 import { useLPEditor } from '../../hooks/useLPEditor';
-import { SectionType, Section } from '../../types';
+import { SectionType } from '../../types';
+import { SectionListItem } from './SectionListItem';
 
 interface SectionListProps {
     onSectionSelect: (sectionId: string) => void;
@@ -18,17 +19,17 @@ export function SectionList({ onSectionSelect, selectedSectionId }: SectionListP
         setShowAddMenu(false);
     };
 
-    const handleMoveUp = (index: number) => {
+    const handleMoveUp = useCallback((index: number) => {
         if (index > 0) {
             moveSection(index, index - 1);
         }
-    };
+    }, [moveSection]);
 
-    const handleMoveDown = (index: number) => {
+    const handleMoveDown = useCallback((index: number) => {
         if (index < config.sections.length - 1) {
             moveSection(index, index + 1);
         }
-    };
+    }, [moveSection, config.sections.length]);
 
     const sortedSections = useMemo(() => {
         return [...config.sections].sort((a, b) => a.order - b.order);
@@ -91,94 +92,21 @@ export function SectionList({ onSectionSelect, selectedSectionId }: SectionListP
                     </p>
                 ) : (
                     sortedSections.map((section, index) => (
-                        <div
+                        <SectionListItem
                             key={section.id}
-                            className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedSectionId === section.id
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                            onClick={() => onSectionSelect(section.id)}
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <p className="font-medium text-gray-900">
-                                        {getSectionIcon(section.type)} {getSectionLabel(section.type)}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {getSectionPreview(section)}
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center gap-1 ml-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleMoveUp(index);
-                                        }}
-                                        disabled={index === 0}
-                                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-30"
-                                        title="Mover para cima"
-                                    >
-                                        <ChevronUp size={16} />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleMoveDown(index);
-                                        }}
-                                        disabled={index === sortedSections.length - 1}
-                                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-30"
-                                        title="Mover para baixo"
-                                    >
-                                        <ChevronDown size={16} />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (confirm('Deseja realmente excluir esta seção?')) {
-                                                deleteSection(section.id);
-                                            }
-                                        }}
-                                        className="p-1 hover:bg-red-100 text-red-600 rounded"
-                                        title="Excluir"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                            section={section}
+                            index={index}
+                            isSelected={selectedSectionId === section.id}
+                            isFirst={index === 0}
+                            isLast={index === sortedSections.length - 1}
+                            onSelect={onSectionSelect}
+                            onMoveUp={handleMoveUp}
+                            onMoveDown={handleMoveDown}
+                            onDelete={deleteSection}
+                        />
                     ))
                 )}
             </div>
         </div>
     );
-}
-
-function getSectionIcon(type: string): string {
-    const icons: Record<string, string> = {
-        hero: '🎯',
-        'social-proof': '⭐',
-        faq: '❓',
-        pricing: '💰',
-        footer: '📄',
-    };
-    return icons[type] || '📦';
-}
-
-function getSectionLabel(type: string): string {
-    const labels: Record<string, string> = {
-        hero: 'Hero',
-        'social-proof': 'Prova Social',
-        faq: 'FAQ',
-        pricing: 'Preços',
-        footer: 'Rodapé',
-    };
-    return labels[type] || type;
-}
-
-function getSectionPreview(section: Section): string {
-    if (section.type === 'hero') {
-        return section.headline?.substring(0, 30) || 'Sem título';
-    }
-    return '';
 }
