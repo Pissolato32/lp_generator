@@ -76,7 +76,7 @@ app.post('/api/chat', async (req, res) => {
         session.messages.push(userMsg);
 
         // Process with Agent
-        const newConfig = await agentService.processRequest(
+        const { config: newConfig, explanation } = await agentService.processRequest(
             message,
             session.messages,
             session.lpConfig,
@@ -89,7 +89,7 @@ app.post('/api/chat', async (req, res) => {
 
         session.messages.push({
             role: 'assistant',
-            content: 'I have updated the landing page based on your request.',
+            content: explanation,
             timestamp: Date.now()
         });
 
@@ -103,6 +103,17 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+const startServer = (p: number | string) => {
+    const server = app.listen(p, () => {
+        console.log(`Servidor rodando na porta ${p}`);
+    }).on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+            console.log(`Porta ${p} em uso, tentando porta ${Number(p) + 1}...`);
+            startServer(Number(p) + 1);
+        } else {
+            console.error('Erro ao iniciar servidor:', err);
+        }
+    });
+};
+
+startServer(port);

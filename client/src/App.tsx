@@ -29,8 +29,14 @@ function AppContent() {
                     dispatch({ type: 'LOAD_CONFIG', payload: session.lpConfig });
                 }
                 dispatch({ type: 'SET_SESSION', payload: { sessionId: session.id, messages: session.messages } });
-            } catch (error) {
-                console.error('Failed to restore session:', error);
+            } catch (error: any) {
+                // Se o erro for "Session not found", apenas limpamos o localStorage silenciosamente
+                // para evitar logs de erro desnecessários no console para o usuário
+                if (error.message === 'Session not found') {
+                    console.warn('Sessão expirada ou não encontrada no servidor. Iniciando nova sessão.');
+                } else {
+                    console.error('Falha ao restaurar sessão:', error);
+                }
                 localStorage.removeItem('lp-session-id');
             }
         }
@@ -46,9 +52,12 @@ function AppContent() {
         dispatch({ type: 'LOAD_CONFIG', payload: config });
         dispatch({ type: 'SET_SESSION', payload: { sessionId: session.id, messages: session.messages } });
         localStorage.setItem('lp-session-id', session.id);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Chat error:', error);
-        alert('Erro ao gerar página. Tente novamente.');
+        const errorMessage = error.message?.includes('API Key') 
+            ? 'Chave de API não configurada. Por favor, insira uma chave nas configurações ou configure o servidor.'
+            : 'Erro ao gerar página. Tente novamente.';
+        alert(errorMessage);
     } finally {
         setIsLoading(false);
     }
@@ -69,9 +78,12 @@ function AppContent() {
         dispatch({ type: 'LOAD_CONFIG', payload: config });
         dispatch({ type: 'SET_SESSION', payload: { sessionId: session.id, messages: session.messages } });
         localStorage.setItem('lp-session-id', session.id);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Chat error:', error);
-        alert('Falha ao atualizar a página.');
+        const errorMessage = error.message?.includes('API Key') 
+            ? 'Chave de API não configurada. Por favor, insira uma chave nas configurações ou configure o servidor.'
+            : 'Falha ao atualizar a página.';
+        alert(errorMessage);
     } finally {
         setIsLoading(false);
     }
@@ -84,12 +96,12 @@ function AppContent() {
   };
 
   // If no sections (and not loading), show Welcome Screen
-  if (config.sections.length === 0 && !isLoading) {
+  if ((!config || !config.sections || config.sections.length === 0) && !isLoading) {
     return <WelcomeScreen onStart={handleStartChat} isLoading={isLoading} />;
   }
 
   // If loading initially (first prompt)
-  if (config.sections.length === 0 && isLoading) {
+  if ((!config || !config.sections || config.sections.length === 0) && isLoading) {
       return (
           <div className="min-h-screen bg-slate-900 flex items-center justify-center flex-col gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -97,6 +109,9 @@ function AppContent() {
           </div>
       );
   }
+
+  // Safe access to design properties
+  const primaryColor = config?.design?.primaryColor || '#3b82f6';
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -187,7 +202,7 @@ function AppContent() {
             >
               <LivePreview
                 sections={config.sections}
-                primaryColor={config.design.primaryColor}
+                primaryColor={primaryColor}
                 onSectionClick={setSelectedSectionId}
               />
             </div>

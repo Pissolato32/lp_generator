@@ -23,7 +23,7 @@ console.log(`Fazendo benchmark da operação de filtro...`);
 console.log(`Templates: ${NUM_TEMPLATES}`);
 console.log(`Renderizações simuladas: ${NUM_RENDERS}`);
 
-const selectedCategory = 'saas';
+const selectedCategory = 'saas' as string;
 
 // Linha de base: Filtrar em cada renderização
 const startBaseline = performance.now();

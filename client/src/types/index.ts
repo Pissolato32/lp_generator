@@ -5,6 +5,10 @@ export type SectionType =
     | 'social-proof'
     | 'faq'
     | 'pricing'
+    | 'contact'
+    | 'features'
+    | 'gallery'
+    | 'carousel'
     | 'footer';
 
 export type HeroVariant = 'full-width' | 'split' | 'video-bg' | 'vsl';
@@ -15,12 +19,69 @@ export interface BaseSection {
     order: number;
 }
 
+export interface FeatureItem {
+    id: string;
+    title: string;
+    description: string;
+    icon?: string;
+}
+
+export interface FeaturesSection extends BaseSection {
+    type: 'features';
+    title: string;
+    subtitle?: string;
+    items: FeatureItem[];
+    columns: 2 | 3 | 4;
+}
+
+export interface GalleryImage {
+    id: string;
+    url: string;
+    alt: string;
+    caption?: string;
+}
+
+export interface GallerySection extends BaseSection {
+    type: 'gallery';
+    title?: string;
+    subtitle?: string;
+    images: GalleryImage[];
+    layout: 'grid' | 'masonry';
+}
+
+export interface CarouselItem {
+    id: string;
+    title?: string;
+    description?: string;
+    imageUrl: string;
+    link?: string;
+}
+
+export interface CarouselSection extends BaseSection {
+    type: 'carousel';
+    title?: string;
+    items: CarouselItem[];
+    autoPlay: boolean;
+}
+
 export interface FormField {
     id: string;
     type: 'text' | 'email' | 'tel' | 'textarea';
     label: string;
     placeholder: string;
     required: boolean;
+}
+
+export interface ContactSection extends BaseSection {
+    type: 'contact';
+    title: string;
+    subtitle?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    showForm: boolean;
+    formFields?: FormField[];
+    ctaText?: string;
 }
 
 export interface HeroSection extends BaseSection {

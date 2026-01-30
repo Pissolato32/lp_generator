@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MODEL_NAME = 'gemini-1.5-flash';
+const MODEL_NAME = 'gemini-2.5-flash-lite'; // Modelo de próxima geração com melhor disponibilidade e quota para esta chave
 
 export class AIService {
     private serverKey: string;

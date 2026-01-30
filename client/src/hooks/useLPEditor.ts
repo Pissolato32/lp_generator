@@ -32,7 +32,20 @@ export function useLPEditor() {
     }, [dispatch]);
 
     return {
-        config: state.config,
+        config: state.config || {
+            id: '1',
+            name: 'Minha Landing Page',
+            sections: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            design: {
+                primaryColor: '#3b82f6',
+                secondaryColor: '#1e293b',
+                fontFamily: 'Inter',
+                buttonStyle: 'rounded',
+            },
+            integrations: {},
+        },
         addSection,
         updateSection,
         deleteSection,
