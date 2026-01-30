@@ -1,34 +1,48 @@
 import { aiService } from './ai';
 import { LandingPageConfig, ChatMessage } from '../types';
+import { LandingPageConfigSchema } from '../schemas/landingPage';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 const SYSTEM_PROMPT = `
-Você é um Especialista em Gerador de Landing Page IA.
+Você é um Especialista em Gerador de Landing Page IA (Arquitetura "Smarter Configurator").
 Seu objetivo é gerar ou modificar uma configuração JSON para uma landing page com base nas instruções do usuário.
 
-Stack Atual: React, TailwindCSS, Lucide Icons.
+Stack Atual: React 19, TailwindCSS, Lucide Icons.
 
-Formato de Saída: APENAS JSON. Não inclua blocos de código markdown. Apenas a string JSON bruta.
-O JSON deve seguir rigorosamente a interface LandingPageConfig definida na base de código.
+SEÇÕES DISPONÍVEIS:
+Você pode usar qualquer uma das seguintes seções na matriz 'sections':
+- 'hero': Seção principal com headline, subheadline, CTA e imagem/vídeo.
+- 'features': Grade de recursos/benefícios com ícones.
+- 'social-proof': Depoimentos e logotipos.
+- 'gallery': Galeria de imagens (grid ou masonry).
+- 'carousel': Carrossel de imagens/conteúdo.
+- 'pricing': Tabela de preços.
+- 'faq': Perguntas frequentes.
+- 'contact': Formulário de contato e informações.
+- 'footer': Rodapé com links.
 
-Linguagem:
-Toda a copy da landing page (headlines, subheadlines, textos de botões, conteúdo de seções, etc.) DEVE ser em PORTUGUÊS BRASILEIRO (pt-BR).
+CUSTOMIZAÇÃO DE ESTILO (AVANÇADO):
+Todas as seções possuem campos opcionais 'className' (string) e 'styles' (objeto).
+- Use 'className' para injetar classes utilitárias do TailwindCSS diretamente no container da seção. Ex: "bg-slate-900 text-white py-20".
+- Use 'styles' para estilos inline específicos se necessário.
 
-Estratégia de Imagens:
-Para qualquer URL de imagem (fundos, depoimentos, etc), VOCÊ DEVE USAR:
-"https://placehold.co/600x400?text={Keyword}"
-Substitua {Keyword} por uma palavra-chave relevante em INGLÊS para essa seção (ex: "Guitar", "Coding", "Meeting").
-Não invente outras URLs.
+Formato de Saída (JSON Estrito):
+Responda APENAS com um objeto JSON seguindo esta estrutura exata:
+{
+  "plan": "Uma explicação textual detalhada do seu raciocínio. Descreva passo a passo o que você vai fazer e por que (focando em conversão e design).",
+  "config": { ... Objeto LandingPageConfig completo ... }
+}
 
-Comportamento:
-1. Se este for o primeiro pedido, gere uma LandingPageConfig completa.
-2. Se houver uma configuração existente, modifique-a com base no pedido do usuário.
-3. Seja criativo com a copy se o usuário for vago.
-4. Garanta que todos os IDs sejam strings únicas (UUIDs).
-5. Mantenha a estrutura existente a menos que seja explicitamente solicitado para mudar.
-6. Retorne o JSON ATUALIZADO COMPLETO, não apenas o diff.
-7. SEJA PROATIVO: Se você fizer mudanças de design (cores, fontes), explique brevemente o porquê na mensagem de resposta (se houver um campo para isso, caso contrário, apenas garanta que o JSON reflita as melhores práticas de conversão).
-8. Se o usuário pedir algo ambíguo, tente interpretar da melhor forma para conversão, mas você pode sugerir melhorias no próximo turno.
+Regras:
+1. "plan" vem ANTES de "config". Pense antes de agir.
+2. Toda a copy DEVE ser em PORTUGUÊS BRASILEIRO (pt-BR).
+3. IDs devem ser UUIDs únicos.
+4. Imagens: Use "https://placehold.co/600x400?text={Keyword}" (Keyword em Inglês).
+5. Retorne o JSON COMPLETO da config, não diffs.
+6. Se falhar na validação, você receberá os erros e deverá corrigir.
+
+Lembre-se: Você é um engenheiro de software sênior e especialista em marketing. Suas escolhas devem ser justificadas no "plan".
 `;
 
 export class AgentService {
@@ -38,7 +52,7 @@ export class AgentService {
         currentConfig: LandingPageConfig | null,
         userKey?: string
     ): Promise<{ config: LandingPageConfig; explanation: string }> {
-        // Construct context
+        // Construct initial context
         let prompt = `${SYSTEM_PROMPT}\n\n`;
 
         if (currentConfig) {
@@ -53,34 +67,67 @@ export class AgentService {
         });
 
         prompt += `NOVO PEDIDO DO USUÁRIO: ${message}\n`;
-        prompt += `\nInstrução Especial: Além do JSON da configuração, eu preciso que você forneça uma breve explicação (máximo 2 frases) do que foi alterado ou por que foi feito dessa forma, focando em conversão e design. 
-        Formato de Resposta Esperado:
-        {
-          "config": { ... },
-          "explanation": "Explicação em pt-BR aqui"
+
+        let attempts = 0;
+        const maxAttempts = 3;
+        let lastError = '';
+
+        while (attempts < maxAttempts) {
+            try {
+                let currentPrompt = prompt;
+                if (lastError) {
+                    currentPrompt += `\n\nERRO NA TENTATIVA ANTERIOR:\n${lastError}\n\nCORRIJA O JSON E TENTE NOVAMENTE.`;
+                    console.log(`[Agent] Retry attempt ${attempts + 1} due to validation error.`);
+                }
+
+                const response = await aiService.generateContent(currentPrompt, userKey);
+                const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                // 1. Parse JSON
+                let result;
+                try {
+                    result = JSON.parse(cleanResponse);
+                } catch (e) {
+                    throw new Error(`JSON Syntax Error: ${(e as Error).message}`);
+                }
+
+                // Handle legacy format or missing plan
+                const configRaw = result.config || result;
+                const explanation = result.plan || result.explanation || "Atualizei a landing page.";
+
+                // 2. Validate with Zod
+                // Ensure basic fields if missing before validation to help the AI (optional, but good for robustness)
+                if (!configRaw.id) configRaw.id = uuidv4();
+                if (!configRaw.createdAt) configRaw.createdAt = new Date().toISOString();
+                if (!configRaw.updatedAt) configRaw.updatedAt = new Date().toISOString();
+
+                const validation = LandingPageConfigSchema.safeParse(configRaw);
+
+                if (!validation.success) {
+                    // Format Zod errors for the LLM
+                    const errorMessages = validation.error.errors.map(err => {
+                        return `Path: ${err.path.join('.')}, Message: ${err.message}`;
+                    }).join('\n');
+                    throw new Error(`Schema Validation Failed:\n${errorMessages}`);
+                }
+
+                // Success!
+                return {
+                    config: validation.data as LandingPageConfig, // Return the clean, typed data
+                    explanation: explanation
+                };
+
+            } catch (e) {
+                lastError = (e as Error).message;
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    console.error('[Agent] Max attempts reached. Last error:', lastError);
+                    throw new Error(`Não consegui gerar uma configuração válida após ${maxAttempts} tentativas. Erro: ${lastError}`);
+                }
+            }
         }
-        `;
 
-        const response = await aiService.generateContent(prompt, userKey);
-
-        // Clean up response (remove markdown if model ignores instruction)
-        const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        try {
-            const result = JSON.parse(cleanResponse);
-            const config = result.config || result; // Fallback if it didn't wrap in {config, explanation}
-            const explanation = result.explanation || 'Atualizei a landing page conforme solicitado.';
-
-            // Ensure basic fields if missing (fallback)
-            if (!config.id) config.id = uuidv4();
-            if (!config.createdAt) config.createdAt = new Date().toISOString();
-            if (!config.updatedAt) config.updatedAt = new Date().toISOString();
-
-            return { config, explanation };
-        } catch (e) {
-            console.error('Failed to parse AI response:', cleanResponse);
-            throw new Error('A IA gerou um JSON inválido. Por favor, tente novamente.');
-        }
+        throw new Error('Erro inesperado no loop do agente.');
     }
 }
 
