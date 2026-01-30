@@ -1,27 +1,27 @@
 import { LandingPageConfig, Section } from '../src/types/index.js';
 import { performance } from 'perf_hooks';
 
-// Helper to create a large string
+// Auxiliar para criar uma string longa
 const longString = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(100);
 
-// Helper to create a dummy section
+// Auxiliar para criar uma seção fictícia
 const createSection = (id: string, index: number): Section => ({
     id: `section-${id}`,
-    type: 'hero', // Using 'hero' as a representative type
+    type: 'hero', // Usando 'hero' como um tipo representativo
     order: index,
     variant: 'full-width',
     headline: `Headline ${index} ${longString}`,
     subheadline: `Subheadline ${index} ${longString}`,
-    ctaText: 'Call to Action',
-    ctaUrl: 'https://example.com',
+    ctaText: 'Chamada para Ação',
+    ctaUrl: 'https://exemplo.com',
     showForm: true,
     formFields: [
-        { id: 'f1', type: 'text', label: 'Name', placeholder: 'Enter name', required: true },
-        { id: 'f2', type: 'email', label: 'Email', placeholder: 'Enter email', required: true },
+        { id: 'f1', type: 'text', label: 'Nome', placeholder: 'Digite o nome', required: true },
+        { id: 'f2', type: 'email', label: 'Email', placeholder: 'Digite o email', required: true },
     ]
 });
 
-// Create a large configuration
+// Criar uma configuração grande
 const createLargeConfig = (numSections: number): LandingPageConfig => {
     const sections: Section[] = [];
     for (let i = 0; i < numSections; i++) {
@@ -30,7 +30,7 @@ const createLargeConfig = (numSections: number): LandingPageConfig => {
 
     return {
         id: 'bench-config-id',
-        name: 'Benchmark Config',
+        name: 'Configuração de Benchmark',
         sections: sections,
         design: {
             primaryColor: '#000000',
@@ -39,7 +39,7 @@ const createLargeConfig = (numSections: number): LandingPageConfig => {
             buttonStyle: 'rounded',
         },
         integrations: {
-            webhookUrl: 'https://example.com/webhook',
+            webhookUrl: 'https://exemplo.com/webhook',
             emailApiKey: 'key_123456789',
         },
         createdAt: new Date(),
@@ -48,51 +48,51 @@ const createLargeConfig = (numSections: number): LandingPageConfig => {
 };
 
 const runBenchmark = () => {
-    const config = createLargeConfig(100); // 100 sections is a reasonably large page
-    const iterations = 100; // Simulating 100 rapid updates (e.g. typing)
+    const config = createLargeConfig(100); // 100 seções é uma página razoavelmente grande
+    const iterations = 100; // Simulando 100 atualizações rápidas (ex: digitando)
 
-    console.log(`Running benchmark with ${config.sections.length} sections...`);
+    console.log(`Executando benchmark com ${config.sections.length} seções...`);
 
-    // Baseline: Synchronous Save (Current Behavior)
+    // Linha de base: Salvamento Síncrono (Comportamento Atual)
     const startSync = performance.now();
     for (let i = 0; i < iterations; i++) {
-        // Simulate modifying the config slightly each time to prevent V8 optimization (though stringify is usually not cached like that)
+        // Simular a modificação da configuração levemente a cada vez para evitar a otimização do V8 (embora stringify geralmente não seja cacheado assim)
         const currentConfig = { ...config, updatedAt: new Date() };
         const json = JSON.stringify(currentConfig);
-        // Simulate localStorage.setItem overhead (minor compared to stringify for large objects, but non-zero)
-        // In a real browser, this interacts with the storage subsystem.
-        // We'll mostly measure JSON.stringify cost as the main CPU blocker.
+        // Simular o overhead de localStorage.setItem (menor comparado ao stringify para objetos grandes, mas não zero)
+        // Em um navegador real, isso interage com o subsistema de armazenamento.
+        // Mediremos principalmente o custo de JSON.stringify como o principal bloqueador da CPU.
     }
     const endSync = performance.now();
     const totalSyncTime = endSync - startSync;
 
-    // Optimized: Debounced Save (Ideal Behavior)
-    // With debouncing, we only save ONCE after the burst of updates.
+    // Otimizado: Salvamento com Debounce (Comportamento Ideal)
+    // Com debounce, salvamos apenas UMA VEZ após a explosão de atualizações.
     const startDebounced = performance.now();
 
-    // In a real debounce scenario, the effect runs but clears timeout 99 times, and runs logic 1 time.
-    // We simulate the overhead of setting/clearing timeouts (negligible) + 1 actual save.
+    // Em um cenário real de debounce, o efeito é executado, mas limpa o timeout 99 vezes e executa a lógica 1 vez.
+    // Simulamos o overhead de configurar/limpar timeouts (insignificante) + 1 salvamento real.
 
-    // Simulate 99 "skipped" updates (overhead of useEffect trigger + timeout set/clear is minimal compared to stringify)
+    // Simular 99 atualizações "puladas" (overhead do gatilho useEffect + configuração/limpeza do timeout é mínimo comparado ao stringify)
     for (let i = 0; i < iterations - 1; i++) {
-        // No-op or minimal overhead
+        // Sem operação ou overhead mínimo
     }
 
-    // The final save
+    // O salvamento final
     const finalConfig = { ...config, updatedAt: new Date() };
     const jsonFinal = JSON.stringify(finalConfig);
 
     const endDebounced = performance.now();
     const totalDebouncedTime = endDebounced - startDebounced;
 
-    console.log('\nResults:');
-    console.log(`Simulated updates: ${iterations}`);
-    console.log(`Total Time (Sync/Current): ${totalSyncTime.toFixed(2)}ms`);
-    console.log(`Total Time (Debounced/Optimized): ${totalDebouncedTime.toFixed(2)}ms`);
-    console.log(`Improvement: ${((totalSyncTime - totalDebouncedTime) / totalSyncTime * 100).toFixed(2)}%`);
-    console.log(`\nAverage time per "frame" (update):`);
-    console.log(`Sync: ${(totalSyncTime / iterations).toFixed(2)}ms`);
-    console.log(`Debounced: ${(totalDebouncedTime / iterations).toFixed(2)}ms (amortized)`);
+    console.log('\nResultados:');
+    console.log(`Atualizações simuladas: ${iterations}`);
+    console.log(`Tempo Total (Síncrono/Atual): ${totalSyncTime.toFixed(2)}ms`);
+    console.log(`Tempo Total (Debounce/Otimizado): ${totalDebouncedTime.toFixed(2)}ms`);
+    console.log(`Melhoria: ${((totalSyncTime - totalDebouncedTime) / totalSyncTime * 100).toFixed(2)}%`);
+    console.log(`\nTempo médio por "frame" (atualização):`);
+    console.log(`Síncrono: ${(totalSyncTime / iterations).toFixed(2)}ms`);
+    console.log(`Debounce: ${(totalDebouncedTime / iterations).toFixed(2)}ms (amortizado)`);
 };
 
 runBenchmark();

@@ -1,21 +1,21 @@
 from playwright.sync_api import sync_playwright
 
 def verify_preview(page):
-    print("Navigating to homepage...")
+    print("Navegando para a página inicial...")
     page.goto("http://localhost:5173/")
 
-    # Wait for the main content to load.
-    # Based on the code, if no sections, it shows "Nenhuma seção adicionada".
-    # Or if there is a main layout.
+    # Aguardar o conteúdo principal carregar.
+    # Com base no código, se não houver seções, mostra "Nenhuma seção adicionada".
+    # Ou se houver um layout principal.
 
-    print("Waiting for content...")
-    # Just wait for the body to be visible or some text
+    print("Aguardando conteúdo...")
+    # Apenas aguardar o corpo ficar visível ou algum texto
     page.wait_for_selector("body")
 
-    # Take a screenshot
-    print("Taking screenshot...")
+    # Tirar um print
+    print("Tirando captura de tela...")
     page.screenshot(path="verification/preview.png")
-    print("Screenshot saved to verification/preview.png")
+    print("Captura de tela salva em verification/preview.png")
 
 if __name__ == "__main__":
     with sync_playwright() as p:
@@ -24,6 +24,6 @@ if __name__ == "__main__":
         try:
             verify_preview(page)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Erro: {e}")
         finally:
             browser.close()

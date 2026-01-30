@@ -1,4 +1,4 @@
-// Core types for the Landing Page Generator
+// Tipos principais para o Gerador de Landing Page
 
 export type SectionType =
     | 'hero'

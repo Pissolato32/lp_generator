@@ -9,19 +9,19 @@ export interface UserInput {
 }
 
 export async function generateLPConfig(input: UserInput): Promise<LandingPageConfig> {
-    // Simulate AI delay
+    // Simular atraso da IA
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const { productName, productDescription, tone } = input;
 
-    // Helper to generate IDs
+    // Auxiliar para gerar IDs
     const uuid = () => crypto.randomUUID();
 
-    // Tone adjustments (simple implementation)
+    // Ajustes de tom (implementação simples)
     const isAggressive = tone === 'aggressive';
     const isFormal = tone === 'formal';
 
-    // Generate Hero Section
+    // Gerar Seção Hero
     const hero: HeroSection = {
         id: uuid(),
         type: 'hero',
@@ -44,7 +44,7 @@ export async function generateLPConfig(input: UserInput): Promise<LandingPageCon
         ] : [],
     };
 
-    // Generate Social Proof
+    // Gerar Prova Social
     const socialProof: SocialProofSection = {
         id: uuid(),
         type: 'social-proof',
@@ -68,7 +68,7 @@ export async function generateLPConfig(input: UserInput): Promise<LandingPageCon
         ]
     };
 
-    // Generate FAQ
+    // Gerar FAQ
     const faq: FAQSection = {
         id: uuid(),
         type: 'faq',
@@ -92,7 +92,7 @@ export async function generateLPConfig(input: UserInput): Promise<LandingPageCon
         ]
     };
 
-    // Generate Pricing (if sales)
+    // Gerar Preços (se o objetivo for vendas)
     const sections: Section[] = [hero, socialProof, faq];
 
     if (input.goal === 'sales') {

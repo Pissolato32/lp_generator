@@ -1,7 +1,7 @@
 
 import { performance } from 'perf_hooks';
 
-// Mock data structure
+// Estrutura de dados mockada
 interface MockSection {
     id: string;
     order: number;
@@ -11,45 +11,45 @@ interface MockSection {
 const NUM_SECTIONS = 50;
 const NUM_RENDERS = 100000;
 
-// Create random sections
+// Criar seções aleatórias
 const sections: MockSection[] = Array.from({ length: NUM_SECTIONS }, (_, i) => ({
     id: `id-${i}`,
     order: Math.floor(Math.random() * 100),
     type: 'hero'
 }));
 
-console.log(`Benchmarking sort operation...`);
-console.log(`Sections: ${NUM_SECTIONS}`);
-console.log(`Simulated Renders: ${NUM_RENDERS}`);
+console.log(`Fazendo benchmark da operação de ordenação...`);
+console.log(`Seções: ${NUM_SECTIONS}`);
+console.log(`Renderizações simuladas: ${NUM_RENDERS}`);
 
-// Baseline: Sort on every render
+// Linha de base: Ordenar em cada renderização
 const startBaseline = performance.now();
 for (let i = 0; i < NUM_RENDERS; i++) {
-    // Simulate what the component does: create a shallow copy and sort
+    // Simular o que o componente faz: criar uma cópia rasa e ordenar
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const sorted = [...sections].sort((a, b) => a.order - b.order);
 }
 const endBaseline = performance.now();
 const baselineTime = endBaseline - startBaseline;
 
-console.log(`\nBaseline (Sort every time): ${baselineTime.toFixed(2)}ms`);
+console.log(`\nLinha de base (Ordenar todas as vezes): ${baselineTime.toFixed(2)}ms`);
 
-// Optimized: Sort only once (Memoized)
+// Otimizado: Ordenar apenas uma vez (Memoizado)
 const startOptimized = performance.now();
 
-// Initial sort (simulating the first render)
+// Ordenação inicial (simulando a primeira renderização)
 const sortedMemoized = [...sections].sort((a, b) => a.order - b.order);
 
 for (let i = 1; i < NUM_RENDERS; i++) {
-    // Simulate re-render where dependencies (sections) haven't changed
-    // We just reuse the result
+    // Simular re-renderização onde as dependências (sections) não mudaram
+    // Apenas reutilizamos o resultado
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const sorted = sortedMemoized;
+    const filtered = sortedMemoized;
 }
 const endOptimized = performance.now();
 const optimizedTime = endOptimized - startOptimized;
 
-console.log(`Optimized (Memoized): ${optimizedTime.toFixed(2)}ms`);
+console.log(`Otimizado (Memoizado): ${optimizedTime.toFixed(2)}ms`);
 
 const improvement = baselineTime / optimizedTime;
-console.log(`\nSpeedup: ${improvement.toFixed(1)}x`);
+console.log(`\nMelhoria de velocidade: ${improvement.toFixed(1)}x`);

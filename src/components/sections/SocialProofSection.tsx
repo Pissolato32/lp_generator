@@ -9,7 +9,7 @@ interface SocialProofSectionProps {
 export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: SocialProofSectionProps) {
     const { testimonials, logos, showRatings } = section;
 
-    // Render star rating
+    // Renderizar avaliação em estrelas
     const renderStars = (rating: number) => {
         return (
             <div className="flex gap-1">
@@ -27,7 +27,7 @@ export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: Social
     return (
         <section className="py-20 px-4 bg-gray-50">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
+                {/* Cabeçalho */}
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                         O Que Nossos Clientes Dizem
@@ -37,7 +37,7 @@ export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: Social
                     </p>
                 </div>
 
-                {/* Testimonials Grid */}
+                {/* Grade de Depoimentos */}
                 {testimonials && testimonials.length > 0 && (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
                         {testimonials.map((testimonial) => (
@@ -45,17 +45,17 @@ export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: Social
                                 key={testimonial.id}
                                 className="bg-white p-8 rounded-2xl shadow-soft hover:shadow-soft-lg transition-all duration-300 animate-fade-in"
                             >
-                                {/* Rating */}
+                                {/* Avaliação */}
                                 {showRatings && testimonial.rating && (
                                     <div className="mb-4">{renderStars(testimonial.rating)}</div>
                                 )}
 
-                                {/* Content */}
+                                {/* Conteúdo */}
                                 <p className="text-gray-700 mb-6 leading-relaxed">
                                     "{testimonial.content}"
                                 </p>
 
-                                {/* Author */}
+                                {/* Autor */}
                                 <div className="flex items-center gap-4">
                                     {testimonial.avatar ? (
                                         <img
@@ -81,7 +81,7 @@ export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: Social
                     </div>
                 )}
 
-                {/* Logo Wall */}
+                {/* Mural de Logos */}
                 {logos && logos.length > 0 && (
                     <div className="border-t border-gray-200 pt-16">
                         <p className="text-center text-gray-600 mb-8 font-medium">
