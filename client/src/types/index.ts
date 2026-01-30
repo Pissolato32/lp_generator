@@ -145,3 +145,17 @@ export interface CopyTemplate {
     subheadline: string;
     ctaText: string;
 }
+
+export interface ChatMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: number;
+}
+
+export interface SessionData {
+    id: string;
+    messages: ChatMessage[];
+    lpConfig: LandingPageConfig | null;
+    createdAt: number;
+    updatedAt: number;
+}
