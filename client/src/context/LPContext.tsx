@@ -13,6 +13,7 @@ type LPAction =
     | { type: 'UPDATE_SECTION'; payload: { id: string; updates: Partial<Section> } }
     | { type: 'DELETE_SECTION'; payload: string }
     | { type: 'REORDER_SECTIONS'; payload: Section[] }
+    | { type: 'MOVE_SECTION'; payload: { fromIndex: number; toIndex: number } }
     | { type: 'UPDATE_DESIGN'; payload: Partial<DesignConfig> }
     | { type: 'UPDATE_INTEGRATIONS'; payload: Partial<IntegrationConfig> }
     | { type: 'LOAD_CONFIG'; payload: LandingPageConfig }
@@ -80,6 +81,23 @@ function lpReducer(state: LPState, action: LPAction): LPState {
                     updatedAt: new Date(),
                 },
             };
+        case 'MOVE_SECTION': {
+            const newSections = [...state.config.sections];
+            const [moved] = newSections.splice(action.payload.fromIndex, 1);
+            newSections.splice(action.payload.toIndex, 0, moved);
+
+            return {
+                ...state,
+                config: {
+                    ...state.config,
+                    sections: newSections.map((section, index) => ({
+                        ...section,
+                        order: index,
+                    })),
+                    updatedAt: new Date(),
+                },
+            };
+        }
         case 'UPDATE_DESIGN':
             return {
                 ...state,
