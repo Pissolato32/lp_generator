@@ -4,11 +4,12 @@ const getApiUrl = () => {
     const envUrl = import.meta.env.VITE_API_URL as string;
     if (envUrl) return envUrl;
     
-    // Se estiver em desenvolvimento local, tenta a 3001 e 3002
-    return 'http://localhost:3001/api';
+    // Tenta carregar a porta salva ou assume a 3001
+    const savedPort = localStorage.getItem('lp_api_port') || '3001';
+    return `http://localhost:${savedPort}/api`;
 };
 
-const API_URL = getApiUrl();
+let API_URL = getApiUrl();
 
 // Função auxiliar para tentar fetch em múltiplas portas se falhar
 async function fetchWithFallback(path: string, options: RequestInit): Promise<Response> {
@@ -17,13 +18,25 @@ async function fetchWithFallback(path: string, options: RequestInit): Promise<Re
         if (response.ok || response.status < 500) return response;
         throw new Error('Server error');
     } catch (err) {
-        // Se falhar na 3001, tenta na 3002 (fallback local)
-        if (API_URL.includes('3001')) {
-            const fallbackUrl = API_URL.replace('3001', '3002');
-            console.log(`Falha na porta 3001, tentando fallback na ${fallbackUrl}`);
-            return fetch(`${fallbackUrl}${path}`, options);
+        // Se falhar na porta atual, tenta a outra
+        const currentPort = API_URL.includes('3001') ? '3001' : '3002';
+        const fallbackPort = currentPort === '3001' ? '3002' : '3001';
+        const fallbackUrl = `http://localhost:${fallbackPort}/api`;
+        
+        try {
+            // Silencia o erro de conexão no console do navegador built-in para evitar poluição de logs
+            const response = await fetch(`${fallbackUrl}${path}`, options);
+            if (response.ok || response.status < 500) {
+                // Se o fallback funcionou, atualiza a porta global para futuras requisições
+                API_URL = fallbackUrl;
+                localStorage.setItem('lp_api_port', fallbackPort);
+                return response;
+            }
+            throw new Error('Server error');
+        } catch (fallbackErr) {
+            // Se ambos falharem, reporta um erro genérico silencioso ou tratado
+            throw new Error('Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
         }
-        throw err;
     }
 }
 

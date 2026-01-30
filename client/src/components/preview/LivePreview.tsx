@@ -6,6 +6,8 @@ import { ContactSection } from '../sections/ContactSection';
 import { FeaturesSection } from '../sections/FeaturesSection';
 import { GallerySection } from '../sections/GallerySection';
 import { CarouselSection } from '../sections/CarouselSection';
+import { TestimonialsSection } from '../sections/TestimonialsSection';
+import { CtaSection } from '../sections/CtaSection';
 
 interface LivePreviewProps {
     sections: Section[];
@@ -16,7 +18,14 @@ interface LivePreviewProps {
 export function LivePreview({ sections, primaryColor, onSectionClick }: LivePreviewProps) {
     const sortedSections = useMemo(() => {
         if (!sections || !Array.isArray(sections)) return [];
-        return [...sections].sort((a, b) => a.order - b.order);
+        
+        // Normaliza os tipos das seções caso a IA use nomes de interfaces
+        const normalized = sections.map(s => ({
+            ...s,
+            type: s.type.replace(/Section$/i, '').toLowerCase() as any
+        }));
+
+        return [...normalized].sort((a, b) => a.order - b.order);
     }, [sections]);
 
     return (
@@ -111,6 +120,14 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
                             <CarouselSection section={section as any} primaryColor={primaryColor} />
                         )}
 
+                        {section.type === 'testimonials' && (
+                            <TestimonialsSection section={section as any} primaryColor={primaryColor} />
+                        )}
+
+                        {section.type === 'cta' && (
+                            <CtaSection section={section as any} primaryColor={primaryColor} />
+                        )}
+
                         {section.type === 'footer' && (
                             <footer className="py-12 px-4 bg-gray-900 text-white">
                                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 items-center">
@@ -129,7 +146,7 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
                         )}
 
                         {/* Fallback para tipos não mapeados ou renderização vazia */}
-                        {!['hero', 'social-proof', 'faq', 'pricing', 'contact', 'features', 'gallery', 'carousel', 'footer'].includes(section.type) && (
+                        {!['hero', 'social-proof', 'faq', 'pricing', 'contact', 'features', 'gallery', 'carousel', 'testimonials', 'cta', 'footer'].includes(section.type) && (
                             <div className="py-20 px-4 bg-gray-50 border-2 border-dashed border-gray-200 text-center">
                                 <p className="text-gray-400 font-medium">Seção do tipo "{section.type}" ainda não visualizada</p>
                             </div>
@@ -151,6 +168,8 @@ function getSectionLabel(type: string): string {
         features: 'Destaques',
         gallery: 'Galeria',
         carousel: 'Banner/Slide',
+        testimonials: 'Depoimentos',
+        cta: 'Chamada para Ação',
         footer: 'Rodapé',
     };
     return labels[type] || type;

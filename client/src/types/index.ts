@@ -9,6 +9,8 @@ export type SectionType =
     | 'features'
     | 'gallery'
     | 'carousel'
+    | 'testimonials'
+    | 'cta'
     | 'footer';
 
 export type HeroVariant = 'full-width' | 'split' | 'video-bg' | 'vsl';
@@ -62,6 +64,22 @@ export interface CarouselSection extends BaseSection {
     title?: string;
     items: CarouselItem[];
     autoPlay: boolean;
+}
+
+export interface TestimonialsSection extends BaseSection {
+    type: 'testimonials';
+    title?: string;
+    subtitle?: string;
+    testimonials: Testimonial[];
+}
+
+export interface CtaSection extends BaseSection {
+    type: 'cta';
+    title: string;
+    subtitle?: string;
+    ctaText: string;
+    ctaUrl?: string;
+    variant?: 'light' | 'dark' | 'primary';
 }
 
 export interface FormField {

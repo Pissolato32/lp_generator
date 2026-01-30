@@ -116,61 +116,64 @@ function AppContent() {
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Top Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Gerador de LP
+      <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shadow-sm z-10">
+        <div className="flex items-center gap-8">
+          <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tighter">
+            LP Architect
           </h1>
-          <div className="h-6 w-px bg-gray-300" />
+          <div className="h-8 w-px bg-gray-200" />
 
-          <div className="flex bg-gray-100 p-1 rounded-lg">
+          <div className="flex bg-gray-100 p-1.5 rounded-xl border border-gray-200/50 shadow-inner">
              <button
                 onClick={() => setIsChatMode(true)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                    isChatMode ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2.5 ${
+                    isChatMode ? 'bg-white text-blue-600 shadow-md scale-105' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
                 }`}
              >
-                <MessageSquare size={16} />
+                <MessageSquare size={18} />
                 Chat IA
              </button>
              <button
                 onClick={() => setIsChatMode(false)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                    !isChatMode ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2.5 ${
+                    !isChatMode ? 'bg-white text-blue-600 shadow-md scale-105' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
                 }`}
              >
-                <Settings size={16} />
-                Avançado
+                <Settings size={18} />
+                Editor
              </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-           <div className="hidden md:flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+        <div className="flex items-center gap-6">
+           <div className="hidden lg:flex items-center gap-2 bg-gray-100 p-1.5 rounded-xl border border-gray-200/50">
             <button
               onClick={() => setPreviewMode('desktop')}
-              className={`p-1.5 rounded transition-colors ${previewMode === 'desktop' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+              className={`p-2 rounded-lg transition-all ${previewMode === 'desktop' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Desktop"
             >
-              <Monitor size={18} />
+              <Monitor size={20} />
             </button>
             <button
               onClick={() => setPreviewMode('tablet')}
-              className={`p-1.5 rounded transition-colors ${previewMode === 'tablet' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+              className={`p-2 rounded-lg transition-all ${previewMode === 'tablet' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Tablet"
             >
-              <Tablet size={18} />
+              <Tablet size={20} />
             </button>
             <button
               onClick={() => setPreviewMode('mobile')}
-              className={`p-1.5 rounded transition-colors ${previewMode === 'mobile' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+              className={`p-2 rounded-lg transition-all ${previewMode === 'mobile' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Mobile"
             >
-              <Smartphone size={18} />
+              <Smartphone size={20} />
             </button>
           </div>
 
           <button
-            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+            className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2.5 text-sm shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95"
           >
-            <Download size={16} />
+            <Download size={18} />
             Exportar
           </button>
         </div>
@@ -179,7 +182,7 @@ function AppContent() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (Chat or Editor) */}
-        <div className="w-full md:w-[400px] shrink-0 border-r border-gray-200 bg-white z-0 relative">
+        <div className="w-full md:w-[420px] shrink-0 border-r border-gray-200 bg-white z-0 relative shadow-xl">
             {isChatMode ? (
                 <ChatSidebar
                     messages={state.messages}
@@ -195,9 +198,12 @@ function AppContent() {
         </div>
 
         {/* Live Preview */}
-        <div className="flex-1 flex items-center justify-center p-4 md:p-8 overflow-hidden bg-slate-100">
+        <div className="flex-1 flex items-center justify-center p-8 md:p-16 lg:p-24 overflow-hidden bg-slate-50 relative">
+            {/* Background pattern for preview area */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+            
             <div
-              className="bg-white shadow-2xl rounded-lg overflow-hidden h-full transition-all duration-300"
+              className="bg-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] rounded-2xl overflow-hidden h-full transition-all duration-500 ease-in-out border border-gray-200/50"
               style={{ width: previewWidths[previewMode] }}
             >
               <LivePreview
