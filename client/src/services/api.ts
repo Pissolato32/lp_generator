@@ -1,4 +1,4 @@
-import { LandingPageConfig, SessionData } from '../types';
+import { SessionData, ChatResponse, ErrorResponse } from '../types';
 
 const getApiUrl = () => {
     const envUrl = import.meta.env.VITE_API_URL as string;

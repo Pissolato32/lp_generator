@@ -1,8 +1,14 @@
+// Tipos principais para o Gerador de Landing Page
+
 export type SectionType =
     | 'hero'
     | 'social-proof'
     | 'faq'
     | 'pricing'
+    | 'contact'
+    | 'features'
+    | 'gallery'
+    | 'carousel'
     | 'footer';
 
 export type HeroVariant = 'full-width' | 'split' | 'video-bg' | 'vsl';
@@ -11,6 +17,53 @@ export interface BaseSection {
     id: string;
     type: SectionType;
     order: number;
+    className?: string;
+    styles?: Record<string, string>;
+}
+
+export interface FeatureItem {
+    id: string;
+    title: string;
+    description: string;
+    icon?: string;
+}
+
+export interface FeaturesSection extends BaseSection {
+    type: 'features';
+    title: string;
+    subtitle?: string;
+    items: FeatureItem[];
+    columns: 2 | 3 | 4;
+}
+
+export interface GalleryImage {
+    id: string;
+    url: string;
+    alt: string;
+    caption?: string;
+}
+
+export interface GallerySection extends BaseSection {
+    type: 'gallery';
+    title?: string;
+    subtitle?: string;
+    images: GalleryImage[];
+    layout: 'grid' | 'masonry';
+}
+
+export interface CarouselItem {
+    id: string;
+    title?: string;
+    description?: string;
+    imageUrl: string;
+    link?: string;
+}
+
+export interface CarouselSection extends BaseSection {
+    type: 'carousel';
+    title?: string;
+    items: CarouselItem[];
+    autoPlay: boolean;
 }
 
 export interface FormField {
@@ -19,6 +72,18 @@ export interface FormField {
     label: string;
     placeholder: string;
     required: boolean;
+}
+
+export interface ContactSection extends BaseSection {
+    type: 'contact';
+    title: string;
+    subtitle?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    showForm: boolean;
+    formFields?: FormField[];
+    ctaText?: string;
 }
 
 export interface HeroSection extends BaseSection {
@@ -102,7 +167,11 @@ export type Section =
     | SocialProofSection
     | FAQSection
     | PricingSection
-    | FooterSection;
+    | FooterSection
+    | FeaturesSection
+    | GallerySection
+    | CarouselSection
+    | ContactSection;
 
 export interface DesignConfig {
     primaryColor: string;
@@ -132,7 +201,17 @@ export interface LandingPageConfig {
     updatedAt: Date;
 }
 
-// Server specific types
+export type ExportFormat = 'html' | 'react' | 'wordpress';
+
+export type CopyFramework = 'aida' | 'pas' | 'fab';
+
+export interface CopyTemplate {
+    framework: CopyFramework;
+    niche: string;
+    headline: string;
+    subheadline: string;
+    ctaText: string;
+}
 
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'system';
@@ -146,4 +225,13 @@ export interface SessionData {
     lpConfig: LandingPageConfig | null;
     createdAt: number;
     updatedAt: number;
+}
+
+export interface ChatResponse {
+    session: SessionData;
+    config: LandingPageConfig;
+}
+
+export interface ErrorResponse {
+    error: string;
 }
