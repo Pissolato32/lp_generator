@@ -1,58 +1,50 @@
 import { aiService } from './ai';
 import { LandingPageConfig, ChatMessage } from '../types';
+import { LandingPageConfigSchema } from '../schemas/landingPage';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 const SYSTEM_PROMPT = `
-Você é um Arquiteto de Landing Pages IA de elite, operando sob o Protocolo de Descoberta Estruturada. Seu objetivo é guiar o usuário em um fluxo de coleta de informações antes e durante a geração do site.
+Você é um Especialista em Gerador de Landing Page IA (Arquitetura "Smarter Configurator"), operando sob o Protocolo de Descoberta Estruturada.
+Seu objetivo é guiar o usuário na criação de landing pages profissionais, garantindo que todas as informações críticas sejam coletadas antes ou durante a geração.
 
 ### 1. FLUXO DE DESCOBERTA OBRIGATÓRIO
-Se a configuração atual for nula ou incompleta, você deve seguir este fluxo de perguntas, uma por uma ou em pequenos grupos:
-- **Etapa 1: Identidade e Propósito** (Nome do negócio, o que faz, objetivo principal do site).
-- **Etapa 2: Público e Tom** (Quem é o cliente ideal, qual a linguagem/tom de voz).
-- **Etapa 3: Design e Estética** (Cores preferidas, estilo visual - minimalista, corporativo, vibrante).
-- **Etapa 4: Estrutura e Funcionalidades** (Quais seções deseja: FAQ, Galeria, Contato, etc).
+Se a configuração atual for nula ou incompleta, você deve coletar:
+- **Identidade e Propósito**: Nome do negócio e objetivo.
+- **Público e Tom**: Quem é o cliente e tom de voz.
+- **Design e Estética**: Cores e estilo visual.
+- **Estrutura**: Seções desejadas (FAQ, Galeria, Contato, etc).
 
-### 2. LÓGICA DE VALIDAÇÃO
-- Não gere um site completo se faltarem dados críticos (ex: o que o negócio faz).
-- Se o usuário for vago, peça clarificação ANTES de prosseguir para a próxima etapa.
-- Mantenha um estado de "Discovery" até que os pilares acima estejam satisfeitos.
+### 2. ARQUITETURA TÉCNICA (React 19, TailwindCSS, Lucide Icons)
+SEÇÕES DISPONÍVEIS na matriz 'sections':
+- 'hero': Headline, subheadline, CTA e imagem.
+- 'features': Grade de recursos with ícones.
+- 'social-proof': Depoimentos e logotipos.
+- 'gallery': Galeria (grid ou masonry).
+- 'carousel': Carrossel de imagens.
+- 'pricing': Tabela de preços.
+- 'faq': Perguntas frequentes.
+- 'contact': Formulário e informações.
+- 'footer': Rodapé.
+- 'cta': Chamada para ação secundária.
+- 'testimonials': Seção dedicada de depoimentos.
 
-### 3. CHECKPOINTS DE QUALIDADE (Automáticos no JSON)
-Para cada geração de seção, você deve garantir:
-- **Responsividade**: Layouts que se adaptam (usando classes Tailwind apropriadas).
-- **SEO & Acessibilidade**: Headlines semânticas (H1, H2), textos alt em imagens, contraste de cores.
-- **Performance**: Estruturas leves, sem redundância de código.
-- **Segurança**: Formulários com labels claros e placeholders informativos.
+CUSTOMIZAÇÃO: Use 'className' para Tailwind e 'styles' para inline.
 
-### 4. LOOP DE REFINAMENTO CONTÍNUO
-Apresente a versão incremental do site e SEMPRE pergunte: "Como ficou esta seção? Deseja ajustar cores, textos ou a estrutura?"
-Persista iterativamente até a aprovação total.
-
-### 5. FORMATO DE SAÍDA
-Retorne APENAS um JSON no formato:
+### 3. FORMATO DE SAÍDA (JSON Estrito)
+Responda APENAS com um objeto JSON:
 {
-  "config": { ... },
-  "explanation": "Breve resumo das alterações e qual a próxima etapa do fluxo de descoberta ou refinamento.",
+  "plan": "Explicação detalhada do raciocínio (conversão e design).",
+  "config": { ... Objeto LandingPageConfig completo ... },
   "isDiscoveryComplete": true/false
 }
 
-Linguagem: TODO o conteúdo do site e explicações devem ser em PORTUGUÊS BRASILEIRO (pt-BR).
-
-Estratégia de Imagens:
-Para qualquer URL de imagem (fundos, depoimentos, etc), VOCÊ DEVE USAR:
-"https://placehold.co/600x400?text={Keyword}"
-Substitua {Keyword} por uma palavra-chave relevante em INGLÊS para essa seção (ex: "Guitar", "Coding", "Meeting").
-Não invente outras URLs.
-
-Comportamento:
-1. Se este for o primeiro pedido, gere uma LandingPageConfig completa.
-2. Se houver uma configuração existente, modifique-a com base no pedido do usuário.
-3. Seja criativo com a copy se o usuário for vago.
-4. Garanta que todos os IDs sejam strings únicas (UUIDs).
-5. Mantenha a estrutura existente a menos que seja explicitamente solicitado para mudar.
-6. Retorne o JSON ATUALIZADO COMPLETO, não apenas o diff.
-7. SEJA PROATIVO: Se você fizer mudanças de design (cores, fontes), explique brevemente o porquê na mensagem de resposta (se houver um campo para isso, caso contrário, apenas garanta que o JSON reflita as melhores práticas de conversão).
-8. Se o usuário pedir algo ambíguo, tente interpretar da melhor forma para conversão, mas você pode sugerir melhorias no próximo turno.
+Regras:
+1. Copy SEMPRE em PORTUGUÊS BRASILEIRO (pt-BR).
+2. IDs devem ser UUIDs únicos.
+3. Imagens: "https://placehold.co/600x400?text={Keyword}" (Inglês).
+4. Retorne o JSON COMPLETO.
+5. Apresente a versão e SEMPRE pergunte sobre ajustes (Loop de Refinamento).
 `;
 
 export class AgentService {
@@ -62,7 +54,7 @@ export class AgentService {
         currentConfig: LandingPageConfig | null,
         userKey?: string
     ): Promise<{ config: LandingPageConfig; explanation: string }> {
-        // Construct context
+        // Construct initial context
         let prompt = `${SYSTEM_PROMPT}\n\n`;
 
         if (currentConfig) {
@@ -77,34 +69,67 @@ export class AgentService {
         });
 
         prompt += `NOVO PEDIDO DO USUÁRIO: ${message}\n`;
-        prompt += `\nInstrução Especial: Além do JSON da configuração, eu preciso que você forneça uma breve explicação (máximo 2 frases) do que foi alterado ou por que foi feito dessa forma, focando em conversão e design. 
-        Formato de Resposta Esperado:
-        {
-          "config": { ... },
-          "explanation": "Explicação em pt-BR aqui"
+
+        let attempts = 0;
+        const maxAttempts = 3;
+        let lastError = '';
+
+        while (attempts < maxAttempts) {
+            try {
+                let currentPrompt = prompt;
+                if (lastError) {
+                    currentPrompt += `\n\nERRO NA TENTATIVA ANTERIOR:\n${lastError}\n\nCORRIJA O JSON E TENTE NOVAMENTE.`;
+                    console.log(`[Agent] Retry attempt ${attempts + 1} due to validation error.`);
+                }
+
+                const response = await aiService.generateContent(currentPrompt, userKey);
+                const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                // 1. Parse JSON
+                let result;
+                try {
+                    result = JSON.parse(cleanResponse);
+                } catch (e) {
+                    throw new Error(`JSON Syntax Error: ${(e as Error).message}`);
+                }
+
+                // Handle legacy format or missing plan
+                const configRaw = result.config || result;
+                const explanation = result.plan || result.explanation || "Atualizei a landing page.";
+
+                // 2. Validate with Zod
+                // Ensure basic fields if missing before validation to help the AI (optional, but good for robustness)
+                if (!configRaw.id) configRaw.id = uuidv4();
+                if (!configRaw.createdAt) configRaw.createdAt = new Date().toISOString();
+                if (!configRaw.updatedAt) configRaw.updatedAt = new Date().toISOString();
+
+                const validation = LandingPageConfigSchema.safeParse(configRaw);
+
+                if (!validation.success) {
+                    // Format Zod errors for the LLM
+                    const errorMessages = validation.error.errors.map(err => {
+                        return `Path: ${err.path.join('.')}, Message: ${err.message}`;
+                    }).join('\n');
+                    throw new Error(`Schema Validation Failed:\n${errorMessages}`);
+                }
+
+                // Success!
+                return {
+                    config: validation.data as LandingPageConfig, // Return the clean, typed data
+                    explanation: explanation
+                };
+
+            } catch (e) {
+                lastError = (e as Error).message;
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    console.error('[Agent] Max attempts reached. Last error:', lastError);
+                    throw new Error(`Não consegui gerar uma configuração válida após ${maxAttempts} tentativas. Erro: ${lastError}`);
+                }
+            }
         }
-        `;
 
-        const response = await aiService.generateContent(prompt, userKey);
-
-        // Clean up response (remove markdown if model ignores instruction)
-        const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        try {
-            const result = JSON.parse(cleanResponse);
-            const config = result.config || result; // Fallback if it didn't wrap in {config, explanation}
-            const explanation = result.explanation || 'Atualizei a landing page conforme solicitado.';
-
-            // Ensure basic fields if missing (fallback)
-            if (!config.id) config.id = uuidv4();
-            if (!config.createdAt) config.createdAt = new Date().toISOString();
-            if (!config.updatedAt) config.updatedAt = new Date().toISOString();
-
-            return { config, explanation };
-        } catch (e) {
-            console.error('Failed to parse AI response:', cleanResponse);
-            throw new Error('A IA gerou um JSON inválido. Por favor, tente novamente.');
-        }
+        throw new Error('Erro inesperado no loop do agente.');
     }
 }
 

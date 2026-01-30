@@ -19,6 +19,8 @@ export interface BaseSection {
     id: string;
     type: SectionType;
     order: number;
+    className?: string;
+    styles?: Record<string, string>;
 }
 
 export interface FeatureItem {
@@ -183,7 +185,11 @@ export type Section =
     | SocialProofSection
     | FAQSection
     | PricingSection
-    | FooterSection;
+    | FooterSection
+    | FeaturesSection
+    | GallerySection
+    | CarouselSection
+    | ContactSection;
 
 export interface DesignConfig {
     primaryColor: string;
@@ -237,4 +243,13 @@ export interface SessionData {
     lpConfig: LandingPageConfig | null;
     createdAt: number;
     updatedAt: number;
+}
+
+export interface ChatResponse {
+    session: SessionData;
+    config: LandingPageConfig;
+}
+
+export interface ErrorResponse {
+    error: string;
 }

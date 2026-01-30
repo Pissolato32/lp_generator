@@ -5,7 +5,7 @@ interface GallerySectionProps {
     primaryColor: string;
 }
 
-export function GallerySection({ section, primaryColor }: GallerySectionProps) {
+export function GallerySection({ section }: GallerySectionProps) {
     return (
         <section className="py-20 px-4 bg-gray-50 border-b border-gray-100">
             <div className="max-w-7xl mx-auto">
