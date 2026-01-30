@@ -33,7 +33,7 @@ export function ChatSidebar({ messages, onSendMessage, isLoading }: ChatSidebarP
         <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800 w-full md:w-[350px]">
             <div className="p-4 border-b border-slate-800 flex items-center gap-2">
                 <MessageSquare className="text-blue-500" size={20} />
-                <h2 className="font-semibold text-white">AI Assistant</h2>
+                <h2 className="font-semibold text-white">Assistente de IA</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -69,7 +69,7 @@ export function ChatSidebar({ messages, onSendMessage, isLoading }: ChatSidebarP
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Type a change (e.g., 'Make it blue')..."
+                        placeholder="Peça uma alteração (ex: 'Mude para azul')..."
                         className="w-full p-3 pr-10 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
                         disabled={isLoading}
                     />
