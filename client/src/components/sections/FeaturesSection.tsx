@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import * as Icons from 'lucide-react';
 import type { FeaturesSection as FeaturesSectionType } from '../../types';
 
@@ -6,7 +7,7 @@ interface FeaturesSectionProps {
     primaryColor: string;
 }
 
-export function FeaturesSection({ section, primaryColor }: FeaturesSectionProps) {
+export const FeaturesSection = memo(function FeaturesSection({ section, primaryColor }: FeaturesSectionProps) {
     const gridCols = {
         2: 'md:grid-cols-2',
         3: 'md:grid-cols-3',
@@ -47,4 +48,4 @@ export function FeaturesSection({ section, primaryColor }: FeaturesSectionProps)
             </div>
         </section>
     );
-}
+});

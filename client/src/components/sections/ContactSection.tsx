@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import type { ContactSection as ContactSectionType } from '../../types';
 
@@ -6,7 +7,7 @@ interface ContactSectionProps {
     primaryColor: string;
 }
 
-export function ContactSection({ section, primaryColor }: ContactSectionProps) {
+export const ContactSection = memo(function ContactSection({ section, primaryColor }: ContactSectionProps) {
     return (
         <section className="py-20 px-4 bg-white border-b border-gray-100">
             <div className="max-w-7xl mx-auto">
@@ -108,4 +109,4 @@ export function ContactSection({ section, primaryColor }: ContactSectionProps) {
             </div>
         </section>
     );
-}
+});
