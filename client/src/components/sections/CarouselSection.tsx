@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CarouselSection as CarouselSectionType } from '../../types';
 
@@ -7,7 +7,7 @@ interface CarouselSectionProps {
     primaryColor: string;
 }
 
-export function CarouselSection({ section, primaryColor }: CarouselSectionProps) {
+export const CarouselSection = memo(function CarouselSection({ section, primaryColor }: CarouselSectionProps) {
     const [activeIndex, setActiveIndex] = useState(0);
 
     const nextSlide = () => {
@@ -92,4 +92,4 @@ export function CarouselSection({ section, primaryColor }: CarouselSectionProps)
             </div>
         </section>
     );
-}
+});

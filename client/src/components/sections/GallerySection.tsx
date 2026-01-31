@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { GallerySection as GallerySectionType } from '../../types';
 
 interface GallerySectionProps {
@@ -5,7 +6,7 @@ interface GallerySectionProps {
     primaryColor: string;
 }
 
-export function GallerySection({ section }: GallerySectionProps) {
+export const GallerySection = memo(function GallerySection({ section }: GallerySectionProps) {
     return (
         <section className="py-20 px-4 bg-gray-50 border-b border-gray-100">
             <div className="max-w-7xl mx-auto">
@@ -42,4 +43,4 @@ export function GallerySection({ section }: GallerySectionProps) {
             </div>
         </section>
     );
-}
+});

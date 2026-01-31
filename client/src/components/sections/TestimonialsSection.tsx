@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Star } from 'lucide-react';
 import type { Testimonial } from '../../types';
 
@@ -12,7 +13,7 @@ interface TestimonialsSectionProps {
     primaryColor: string;
 }
 
-export function TestimonialsSection({ section, primaryColor }: TestimonialsSectionProps) {
+export const TestimonialsSection = memo(function TestimonialsSection({ section }: TestimonialsSectionProps) {
     return (
         <section className="py-20 px-4 bg-gray-50 border-b border-gray-100">
             <div className="max-w-7xl mx-auto">
@@ -57,4 +58,4 @@ export function TestimonialsSection({ section, primaryColor }: TestimonialsSecti
             </div>
         </section>
     );
-}
+});
