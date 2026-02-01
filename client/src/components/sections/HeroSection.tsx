@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { HeroSection as HeroSectionType } from '../../types';
 
 interface HeroSectionProps {
@@ -5,7 +6,7 @@ interface HeroSectionProps {
     primaryColor?: string;
 }
 
-export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionProps) {
+export const HeroSection = memo(function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionProps) {
     const {
         variant,
         headline,
@@ -275,7 +276,7 @@ export function HeroSection({ section, primaryColor = '#0ea5e9' }: HeroSectionPr
     }
 
     return null;
-}
+});
 
 // Helper functions for video embeds
 function getYouTubeEmbedUrl(url: string): string {

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Star } from 'lucide-react';
 import type { Testimonial } from '../../types';
 
@@ -12,11 +13,11 @@ interface TestimonialsSectionProps {
     primaryColor: string;
 }
 
-export function TestimonialsSection({ section, primaryColor }: TestimonialsSectionProps) {
+export const TestimonialsSection = memo(function TestimonialsSection({ section }: TestimonialsSectionProps) {
     return (
         <section className="py-20 px-4 bg-gray-50 border-b border-gray-100">
             <div className="max-w-7xl mx-auto">
-                {(section.title || section.subtitle) && (
+                {(section.title ?? section.subtitle) && (
                     <div className="text-center mb-16">
                         {section.title && <h2 className="text-4xl font-bold text-gray-900 mb-4">{section.title}</h2>}
                         {section.subtitle && (
@@ -31,8 +32,8 @@ export function TestimonialsSection({ section, primaryColor }: TestimonialsSecti
                     {section.testimonials?.map((t) => (
                         <div key={t.id} className="p-8 rounded-3xl bg-white border border-gray-100 shadow-sm transition-all hover:shadow-xl hover:shadow-gray-200/50">
                             <div className="flex gap-1 mb-6">
-                                {[...Array(t.rating || 5)].map((_, i) => (
-                                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                                {[...Array(t.rating ?? 5)].map((_, i) => (
+                                    <Star key={`star-${i}`} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                                 ))}
                             </div>
                             <p className="text-gray-700 leading-relaxed mb-8 italic">
@@ -57,4 +58,4 @@ export function TestimonialsSection({ section, primaryColor }: TestimonialsSecti
             </div>
         </section>
     );
-}
+});

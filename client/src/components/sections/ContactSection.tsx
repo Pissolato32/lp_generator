@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import type { ContactSection as ContactSectionType } from '../../types';
 
@@ -6,7 +7,7 @@ interface ContactSectionProps {
     primaryColor: string;
 }
 
-export function ContactSection({ section, primaryColor }: ContactSectionProps) {
+export const ContactSection = memo(function ContactSection({ section, primaryColor }: ContactSectionProps) {
     return (
         <section className="py-20 px-4 bg-white border-b border-gray-100">
             <div className="max-w-7xl mx-auto">
@@ -77,7 +78,7 @@ export function ContactSection({ section, primaryColor }: ContactSectionProps) {
                                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-offset-2 transition-all outline-none min-h-[120px]"
                                                     placeholder={field.placeholder}
                                                     required={field.required}
-                                                    style={{ '--tw-ring-color': primaryColor } as any}
+                                                    style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
                                                 />
                                             ) : (
                                                 <input
@@ -85,7 +86,7 @@ export function ContactSection({ section, primaryColor }: ContactSectionProps) {
                                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-offset-2 transition-all outline-none"
                                                     placeholder={field.placeholder}
                                                     required={field.required}
-                                                    style={{ '--tw-ring-color': primaryColor } as any}
+                                                    style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
                                                 />
                                             )}
                                         </div>
@@ -99,7 +100,7 @@ export function ContactSection({ section, primaryColor }: ContactSectionProps) {
                                         boxShadow: `0 10px 15px -3px ${primaryColor}40`
                                     }}
                                 >
-                                    {section.ctaText || 'Enviar Mensagem'}
+                                    {section.ctaText ?? 'Enviar Mensagem'}
                                 </button>
                             </form>
                         </div>
@@ -108,4 +109,4 @@ export function ContactSection({ section, primaryColor }: ContactSectionProps) {
             </div>
         </section>
     );
-}
+});

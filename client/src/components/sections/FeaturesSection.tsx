@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import * as Icons from 'lucide-react';
 import type { FeaturesSection as FeaturesSectionType } from '../../types';
 
@@ -6,7 +7,7 @@ interface FeaturesSectionProps {
     primaryColor: string;
 }
 
-export function FeaturesSection({ section, primaryColor }: FeaturesSectionProps) {
+export const FeaturesSection = memo(function FeaturesSection({ section, primaryColor }: FeaturesSectionProps) {
     const gridCols = {
         2: 'md:grid-cols-2',
         3: 'md:grid-cols-3',
@@ -27,7 +28,7 @@ export function FeaturesSection({ section, primaryColor }: FeaturesSectionProps)
 
                 <div className={`grid gap-8 ${gridCols}`}>
                     {section.items?.map((item) => {
-                        const IconComponent = (Icons as any)[item.icon || 'Star'] || Icons.Star;
+                        const IconComponent = (Icons as unknown as Record<string, React.ElementType>)[item.icon ?? 'Star'] ?? Icons.Star;
                         return (
                             <div key={item.id} className="p-8 rounded-2xl bg-gray-50 border border-gray-100 transition-all hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1">
                                 <div 
@@ -47,4 +48,4 @@ export function FeaturesSection({ section, primaryColor }: FeaturesSectionProps)
             </div>
         </section>
     );
-}
+});
