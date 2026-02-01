@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Star } from 'lucide-react';
 import type { SocialProofSection as SocialProofSectionType } from '../../types';
 
@@ -6,7 +7,7 @@ interface SocialProofSectionProps {
     primaryColor?: string;
 }
 
-export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: SocialProofSectionProps) {
+export const SocialProofSection = memo(function SocialProofSection({ section, primaryColor = '#0ea5e9' }: SocialProofSectionProps) {
     const { testimonials, logos, showRatings } = section;
 
     // Renderizar avaliação em estrelas
@@ -116,4 +117,4 @@ export function SocialProofSection({ section, primaryColor = '#0ea5e9' }: Social
             </div>
         </section>
     );
-}
+});

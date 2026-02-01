@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface CtaSectionProps {
     section: {
         id: string;
@@ -11,7 +13,7 @@ interface CtaSectionProps {
     primaryColor: string;
 }
 
-export function CtaSection({ section, primaryColor }: CtaSectionProps) {
+export const CtaSection = memo(function CtaSection({ section, primaryColor }: CtaSectionProps) {
     const variants = {
         light: 'bg-white text-gray-900 border-gray-100',
         dark: 'bg-gray-900 text-white border-transparent',
@@ -22,7 +24,7 @@ export function CtaSection({ section, primaryColor }: CtaSectionProps) {
 
     return (
         <section 
-            className={`py-20 px-4 border-b text-center ${variants[section.variant || 'primary']}`}
+            className={`py-20 px-4 border-b text-center ${variants[section.variant ?? 'primary']}`}
             style={bgStyle}
         >
             <div className="max-w-4xl mx-auto">
@@ -45,4 +47,4 @@ export function CtaSection({ section, primaryColor }: CtaSectionProps) {
             </div>
         </section>
     );
-}
+});

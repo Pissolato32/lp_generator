@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CarouselSection as CarouselSectionType } from '../../types';
 
@@ -7,23 +7,23 @@ interface CarouselSectionProps {
     primaryColor: string;
 }
 
-export function CarouselSection({ section, primaryColor }: CarouselSectionProps) {
+export const CarouselSection = memo(function CarouselSection({ section, primaryColor }: CarouselSectionProps) {
     const [activeIndex, setActiveIndex] = useState(0);
 
-    const nextSlide = () => {
+    const nextSlide = useCallback(() => {
         setActiveIndex((prev) => (prev + 1) % section.items.length);
-    };
+    }, [section.items.length]);
 
-    const prevSlide = () => {
+    const prevSlide = useCallback(() => {
         setActiveIndex((prev) => (prev - 1 + section.items.length) % section.items.length);
-    };
+    }, [section.items.length]);
 
     useEffect(() => {
         if (section.autoPlay && section.items.length > 1) {
             const interval = setInterval(nextSlide, 5000);
             return () => clearInterval(interval);
         }
-    }, [section.autoPlay, section.items.length]);
+    }, [section.autoPlay, section.items.length, nextSlide]);
 
     if (!section.items || section.items.length === 0) return null;
 
@@ -44,7 +44,7 @@ export function CarouselSection({ section, primaryColor }: CarouselSectionProps)
                                 <div className="relative aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl shadow-gray-200">
                                     <img 
                                         src={item.imageUrl} 
-                                        alt={item.title || ''}
+                                        alt={item.title ?? ''}
                                         className="w-full h-full object-cover"
                                     />
                                     {(item.title || item.description) && (
@@ -92,4 +92,4 @@ export function CarouselSection({ section, primaryColor }: CarouselSectionProps)
             </div>
         </section>
     );
-}
+});

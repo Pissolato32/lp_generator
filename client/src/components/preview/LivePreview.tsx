@@ -8,6 +8,9 @@ import { GallerySection } from '../sections/GallerySection';
 import { CarouselSection } from '../sections/CarouselSection';
 import { TestimonialsSection } from '../sections/TestimonialsSection';
 import { CtaSection } from '../sections/CtaSection';
+import { FaqSection } from '../sections/FaqSection';
+import { PricingSection } from '../sections/PricingSection';
+import { FooterSection } from '../sections/FooterSection';
 
 interface LivePreviewProps {
     sections: Section[];
@@ -62,46 +65,11 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
                         )}
 
                         {section.type === 'faq' && (
-                            <div className="py-20 px-4 bg-white border-b border-gray-100">
-                                <div className="max-w-3xl mx-auto">
-                                    <h2 className="text-3xl font-bold text-center mb-12">Perguntas Frequentes</h2>
-                                    <div className="space-y-6">
-                                        {(section as any).items?.map((item: any) => (
-                                            <div key={item.id} className="border-b border-gray-100 pb-4">
-                                                <h3 className="text-lg font-semibold mb-2">{item.question}</h3>
-                                                <p className="text-gray-600">{item.answer}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+                            <FaqSection section={section as any} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'pricing' && (
-                            <div className="py-20 px-4 bg-gray-50 border-b border-gray-100">
-                                <div className="max-w-7xl mx-auto text-center">
-                                    <h2 className="text-4xl font-bold mb-12">Nossos Planos</h2>
-                                    <div className="grid md:grid-cols-3 gap-8">
-                                        {(section as any).tiers?.map((tier: any) => (
-                                            <div key={tier.id} className={`p-8 rounded-2xl bg-white shadow-sm border-2 ${tier.highlighted ? 'border-blue-500 scale-105' : 'border-transparent'}`}>
-                                                <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
-                                                <div className="text-3xl font-bold mb-4">{tier.price}<span className="text-sm text-gray-500 font-normal">{tier.period}</span></div>
-                                                <ul className="text-left space-y-3 mb-8">
-                                                    {tier.features?.map((f: string, i: number) => (
-                                                        <li key={i} className="flex items-center gap-2 text-gray-600">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                            {f}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                <button className="w-full py-3 rounded-lg font-bold text-white transition-colors" style={{ backgroundColor: primaryColor }}>
-                                                    {tier.ctaText}
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+                            <PricingSection section={section as any} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'contact' && (
@@ -129,20 +97,7 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
                         )}
 
                         {section.type === 'footer' && (
-                            <footer className="py-12 px-4 bg-gray-900 text-white">
-                                <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-                                    <div>
-                                        <p className="text-gray-400">{(section as any).copyrightText}</p>
-                                    </div>
-                                    <div className="flex gap-4 md:justify-end">
-                                        {(section as any).socialLinks?.map((link: any, i: number) => (
-                                            <a key={i} href={link.url} className="text-gray-400 hover:text-white transition-colors">
-                                                {link.platform}
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                            </footer>
+                            <FooterSection section={section as any} primaryColor={primaryColor} />
                         )}
 
                         {/* Fallback para tipos não mapeados ou renderização vazia */}
