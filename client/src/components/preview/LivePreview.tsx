@@ -23,10 +23,15 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
         if (!sections || !Array.isArray(sections)) return [];
         
         // Normaliza os tipos das seções caso a IA use nomes de interfaces
-        const normalized = sections.map(s => ({
-            ...s,
-            type: s.type.replace(/Section$/i, '').toLowerCase() as any
-        }));
+        // PERFORMANCE: Mantém a referência do objeto se o tipo já estiver normalizado
+        // para evitar re-renders desnecessários em componentes memoizados
+        const normalized = sections.map(s => {
+            const normalizedType = s.type.replace(/Section$/i, '').toLowerCase();
+            if (normalizedType !== s.type) {
+                return { ...s, type: normalizedType as any };
+            }
+            return s;
+        });
 
         return [...normalized].sort((a, b) => a.order - b.order);
     }, [sections]);
