@@ -1,25 +1,29 @@
 import { useState, useMemo } from 'react';
-import { Settings, Palette, Download, CheckCircle2 } from 'lucide-react';
+import { Settings, Palette, Download, CheckCircle2, Code, Copy, Check } from 'lucide-react';
 import { useLPEditor } from '../../hooks/useLPEditor';
 import { SectionList } from './SectionList';
 import { HeroEditor } from './HeroEditor';
 import { SocialProofEditor } from './SocialProofEditor';
+import { generateHTML } from '../../utils/htmlGenerator';
 
 interface EditorSidebarProps {
     selectedSectionId?: string;
     onSectionSelect: (sectionId: string) => void;
 }
 
-type Tab = 'sections' | 'content' | 'design' | 'integrations' | 'export';
+type Tab = 'sections' | 'content' | 'design' | 'code' | 'integrations' | 'export';
 
 export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSidebarProps) {
     const [activeTab, setActiveTab] = useState<Tab>('sections');
     const { config, updateDesign } = useLPEditor();
+    const [copied, setCopied] = useState(false);
 
     const selectedSection = useMemo(
         () => config.sections.find((s) => s.id === selectedSectionId),
         [config.sections, selectedSectionId]
     );
+
+    const htmlCode = useMemo(() => generateHTML(config), [config]);
 
     const handleExport = () => {
         const configStr = JSON.stringify(config, null, 2);
@@ -32,6 +36,28 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    const handleExportHTML = () => {
+        const blob = new Blob([htmlCode], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `index.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleCopyCode = async () => {
+        try {
+            await navigator.clipboard.writeText(htmlCode);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy code:', err);
+        }
     };
 
     return (
@@ -65,6 +91,16 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                 >
                     <Palette size={18} className="inline mr-2" />
                     Design
+                </button>
+                <button
+                    onClick={() => setActiveTab('code')}
+                    className={`flex-1 px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'code'
+                        ? 'text-blue-600 border-blue-600 bg-blue-50/30'
+                        : 'text-gray-400 border-transparent hover:text-gray-600 hover:bg-gray-50'
+                        }`}
+                >
+                    <Code size={18} className="inline mr-2" />
+                    Code
                 </button>
                 <button
                     onClick={() => setActiveTab('export')}
@@ -113,6 +149,36 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                                 </div>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === 'code' && (
+                    <div className="p-6 md:p-8 h-full flex flex-col animate-in fade-in slide-in-from-left-4 duration-300">
+                         <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">HTML Source Code</h4>
+                                <p className="text-sm text-gray-500 mt-1">Código gerado pronto para produção</p>
+                            </div>
+                            <button
+                                onClick={handleCopyCode}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    copied
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                {copied ? <Check size={16} /> : <Copy size={16} />}
+                                {copied ? 'Copiado!' : 'Copiar'}
+                            </button>
+                        </div>
+                        <div className="flex-1 relative rounded-xl overflow-hidden border border-gray-200 shadow-inner bg-gray-50">
+                            <textarea
+                                readOnly
+                                value={htmlCode}
+                                className="absolute inset-0 w-full h-full p-4 font-mono text-xs text-gray-600 bg-transparent resize-none outline-none focus:ring-2 focus:ring-blue-500/20"
+                                spellCheck={false}
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -208,14 +274,22 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                         <div className="space-y-6">
                             <button
                                 onClick={handleExport}
-                                className="w-full py-5 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl font-black shadow-lg hover:shadow-2xl hover:border-blue-600 hover:text-blue-600 transition-all flex items-center justify-center gap-3 group"
+                                className="w-full py-4 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl font-black shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex items-center justify-center gap-3 group"
                             >
-                                <Download size={22} className="group-hover:-translate-y-1 transition-transform" />
-                                Baixar Arquivos Finais
+                                <Settings size={20} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
+                                Exportar Configuração JSON
+                            </button>
+
+                            <button
+                                onClick={handleExportHTML}
+                                className="w-full py-5 bg-blue-600 border-2 border-transparent text-white rounded-2xl font-black shadow-lg hover:shadow-2xl hover:bg-blue-700 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 group"
+                            >
+                                <Code size={22} className="group-hover:-translate-y-1 transition-transform" />
+                                Exportar HTML Website
                             </button>
                             
                             <p className="text-[10px] text-center text-gray-400 font-bold uppercase tracking-[0.2em]">
-                                Formato: JSON • Estrutura Autorativa
+                                Formato: HTML + Tailwind • Pronta Entrega
                             </p>
                         </div>
 
