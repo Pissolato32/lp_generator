@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { v4 as uuidv4, validate as isUUID } from 'uuid';
 import { z } from 'zod';
 import { storage } from './storage';
-import { agentService } from './services/agent';
+import { hybridAgentService } from './services/hybridAgent';
 import { ChatMessage, SessionData } from './types';
 
 dotenv.config();
@@ -136,8 +136,8 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         };
         session.messages.push(userMsg);
 
-        // Process with Agent
-        const { config: newConfig, explanation } = await agentService.processRequest(
+        // Process with Hybrid Agent (uses pre-built blocks + AI)
+        const { config: newConfig, explanation } = await hybridAgentService.processRequest(
             message,
             session.messages,
             session.lpConfig,
