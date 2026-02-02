@@ -160,7 +160,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                                 <p className="text-sm text-gray-500 mt-1">Código gerado pronto para produção</p>
                             </div>
                             <button
-                                onClick={handleCopyCode}
+                                onClick={() => void handleCopyCode()}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                                     copied
                                         ? 'bg-emerald-100 text-emerald-700'

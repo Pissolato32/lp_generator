@@ -47,7 +47,7 @@ export const CarouselSection = memo(function CarouselSection({ section, primaryC
                                         alt={item.title ?? ''}
                                         className="w-full h-full object-cover"
                                     />
-                                    {(item.title || item.description) && (
+                                    {(item.title ?? item.description) && (
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 md:p-16">
                                             {item.title && <h3 className="text-3xl md:text-5xl font-bold text-white mb-4">{item.title}</h3>}
                                             {item.description && <p className="text-lg text-gray-200 max-w-2xl">{item.description}</p>}
@@ -74,9 +74,9 @@ export const CarouselSection = memo(function CarouselSection({ section, primaryC
                             </button>
 
                             <div className="flex justify-center gap-2 mt-8">
-                                {section.items.map((_, i) => (
+                                {section.items.map((item, i) => (
                                     <button
-                                        key={i}
+                                        key={item.id}
                                         onClick={() => setActiveIndex(i)}
                                         className="w-3 h-3 rounded-full transition-all"
                                         style={{ 

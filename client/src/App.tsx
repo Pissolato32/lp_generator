@@ -29,10 +29,10 @@ function AppContent() {
                     dispatch({ type: 'LOAD_CONFIG', payload: session.lpConfig });
                 }
                 dispatch({ type: 'SET_SESSION', payload: { sessionId: session.id, messages: session.messages } });
-            } catch (error: any) {
-                // Se o erro for "Session not found", apenas limpamos o localStorage silenciosamente
-                // para evitar logs de erro desnecessários no console para o usuário
-                if (error.message === 'Session not found') {
+            } catch (error: unknown) {
+                // If error is "Session not found", just clear localStorage silently
+                const errorMessage = error instanceof Error ? error.message : '';
+                if (errorMessage === 'Session not found') {
                     console.warn('Sessão expirada ou não encontrada no servidor. Iniciando nova sessão.');
                 } else {
                     console.error('Falha ao restaurar sessão:', error);
@@ -52,9 +52,10 @@ function AppContent() {
         dispatch({ type: 'LOAD_CONFIG', payload: config });
         dispatch({ type: 'SET_SESSION', payload: { sessionId: session.id, messages: session.messages } });
         localStorage.setItem('lp-session-id', session.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Chat error:', error);
-        const errorMessage = error.message?.includes('API Key') 
+        const errMsg = error instanceof Error ? error.message : '';
+        const errorMessage = errMsg.includes('API Key') 
             ? 'Chave de API não configurada. Por favor, insira uma chave nas configurações ou configure o servidor.'
             : 'Erro ao gerar página. Tente novamente.';
         alert(errorMessage);
@@ -78,9 +79,10 @@ function AppContent() {
         dispatch({ type: 'LOAD_CONFIG', payload: config });
         dispatch({ type: 'SET_SESSION', payload: { sessionId: session.id, messages: session.messages } });
         localStorage.setItem('lp-session-id', session.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Chat error:', error);
-        const errorMessage = error.message?.includes('API Key') 
+        const errMsg = error instanceof Error ? error.message : '';
+        const errorMessage = errMsg.includes('API Key') 
             ? 'Chave de API não configurada. Por favor, insira uma chave nas configurações ou configure o servidor.'
             : 'Falha ao atualizar a página.';
         alert(errorMessage);
@@ -96,12 +98,12 @@ function AppContent() {
   };
 
   // If no sections (and not loading), show Welcome Screen
-  if ((!config || !config.sections || config.sections.length === 0) && !isLoading) {
+  if (!config?.sections?.length && !isLoading) {
     return <WelcomeScreen onStart={handleStartChat} isLoading={isLoading} />;
   }
 
   // If loading initially (first prompt)
-  if ((!config || !config.sections || config.sections.length === 0) && isLoading) {
+  if (!config?.sections?.length && isLoading) {
       return (
           <div className="min-h-screen bg-slate-900 flex items-center justify-center flex-col gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>

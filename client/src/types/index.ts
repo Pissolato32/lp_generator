@@ -189,6 +189,8 @@ export type Section =
     | FeaturesSection
     | GallerySection
     | CarouselSection
+    | TestimonialsSection
+    | CtaSection
     | ContactSection;
 
 export interface DesignConfig {
