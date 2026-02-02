@@ -8,7 +8,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'esbuild',
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: {
