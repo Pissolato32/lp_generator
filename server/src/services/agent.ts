@@ -83,14 +83,26 @@ export class AgentService {
                 }
 
                 const response = await aiService.generateContent(currentPrompt, userKey);
-                const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
-
+                
+                // Clean the response to extract JSON
+                const cleanResponse = this.cleanJsonResponse(response);
+                
                 // 1. Parse JSON
                 let result;
                 try {
                     result = JSON.parse(cleanResponse);
                 } catch (e) {
-                    throw new Error(`JSON Syntax Error: ${(e as Error).message}`);
+                    // Try to extract JSON from markdown-like content
+                    const jsonMatch = response.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        try {
+                            result = JSON.parse(jsonMatch[0]);
+                        } catch {
+                            throw new Error(`JSON Syntax Error: ${(e as Error).message}`);
+                        }
+                    } else {
+                        throw new Error(`JSON Syntax Error: ${(e as Error).message}`);
+                    }
                 }
 
                 // Handle legacy format or missing plan
@@ -130,6 +142,40 @@ export class AgentService {
         }
 
         throw new Error('Erro inesperado no loop do agente.');
+    }
+    
+    private cleanJsonResponse(response: string): string {
+        // Remove markdown code blocks
+        let clean = response.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        // Try to find the JSON object
+        const jsonStart = clean.indexOf('{');
+        const jsonEnd = clean.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+            clean = clean.substring(jsonStart, jsonEnd + 1);
+        }
+        
+        // Remove any trailing non-JSON content
+        let braceCount = 0;
+        let lastValidIndex = -1;
+        for (let i = 0; i < clean.length; i++) {
+            const char = clean[i];
+            if (char === '{') {
+                braceCount++;
+            } else if (char === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                    lastValidIndex = i;
+                }
+            }
+        }
+        
+        if (lastValidIndex !== -1) {
+            clean = clean.substring(0, lastValidIndex + 1);
+        }
+        
+        return clean.trim();
     }
 }
 

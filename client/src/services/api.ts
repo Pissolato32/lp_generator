@@ -1,4 +1,4 @@
-import { SessionData, ChatResponse, ErrorResponse } from '../types';
+import { SessionData, ChatResponse } from '../types';
 
 const getApiUrl = (): string => {
     // Use environment variable if set
@@ -17,16 +17,28 @@ const getApiUrl = (): string => {
 
 let API_URL = getApiUrl();
 
+// Extract error message from response
+async function extractErrorMessage(response: Response, defaultMsg: string): Promise<string> {
+    try {
+        const data = await response.json();
+        if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
+            return data.error;
+        }
+    } catch {
+        // ignore JSON parse errors
+    }
+    return defaultMsg;
+}
+
 // Helper function to try multiple ports if connection fails (dev only)
 async function fetchWithFallback(path: string, options: RequestInit): Promise<Response> {
     try {
         const response = await fetch(`${API_URL}${path}`, options);
-        if (response.ok || response.status < 500) return response;
-        throw new Error('Server error');
+        return response; // Return all responses, handle errors in calling function
     } catch {
-        // Only try fallback ports in development
+        // Network error - only try fallback in development
         if (import.meta.env.PROD) {
-            throw new Error('Não foi possível conectar ao servidor.');
+            throw new Error('Não foi possível conectar ao servidor. Tente novamente.');
         }
         
         const currentPort = API_URL.includes('3001') ? '3001' : '3002';
@@ -35,12 +47,9 @@ async function fetchWithFallback(path: string, options: RequestInit): Promise<Re
         
         try {
             const response = await fetch(`${fallbackUrl}${path}`, options);
-            if (response.ok || response.status < 500) {
-                API_URL = fallbackUrl;
-                localStorage.setItem('lp_api_port', fallbackPort);
-                return response;
-            }
-            throw new Error('Server error');
+            API_URL = fallbackUrl;
+            localStorage.setItem('lp_api_port', fallbackPort);
+            return response;
         } catch {
             throw new Error('Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
         }
@@ -55,13 +64,7 @@ export async function chatWithAgent(message: string, sessionId?: string, userKey
     });
 
     if (!response.ok) {
-        const errorData: unknown = await response.json().catch(() => ({}));
-        const errorMessage = (
-            typeof errorData === 'object' && 
-            errorData !== null && 
-            'error' in errorData && 
-            typeof (errorData as ErrorResponse).error === 'string'
-        ) ? (errorData as ErrorResponse).error : 'Failed to chat with agent';
+        const errorMessage = await extractErrorMessage(response, 'Erro ao gerar página. Tente novamente.');
         throw new Error(errorMessage);
     }
 
