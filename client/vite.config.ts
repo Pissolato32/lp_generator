@@ -8,11 +8,12 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'esbuild',
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          icons: ['lucide-react'],
+          'vendor': ['react', 'react-dom'],
+          'icons': ['lucide-react'],
         },
       },
     },

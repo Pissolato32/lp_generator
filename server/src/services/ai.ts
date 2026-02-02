@@ -12,6 +12,14 @@ const MODELS: string[] = [
     'gemini-2.5-flash',         // 1K RPM, 1M TPM, 10K RPD (fallback)
 ];
 
+// Exponential backoff configuration (Google recommended)
+const BACKOFF_CONFIG = {
+    initialDelayMs: 1000,       // Start with 1 second
+    maxDelayMs: 60000,          // Cap at 60 seconds
+    multiplier: 2,              // Double each retry
+    jitterFactor: 0.2,          // Add 20% random jitter
+};
+
 interface ModelState {
     rateLimitedUntil: number;
     consecutiveFailures: number;
@@ -20,7 +28,6 @@ interface ModelState {
 export class AIService {
     private serverKey: string;
     private modelStates: Map<string, ModelState> = new Map();
-    private currentModelIndex: number = 0;
 
     constructor() {
         this.serverKey = process.env.GOOGLE_API_KEY || '';
@@ -28,7 +35,7 @@ export class AIService {
             console.warn('GOOGLE_API_KEY not set. AI features will require user-provided key.');
         } else {
             console.log('AI Service: API key loaded successfully');
-            console.log(`AI Service: Using smart model rotation with ${MODELS.length} models`);
+            console.log(`AI Service: Primary model: ${MODELS[0]}`);
         }
         
         // Initialize model states
@@ -37,49 +44,36 @@ export class AIService {
         });
     }
 
-    private getAvailableModel(): string {
-        const now = Date.now();
-        
-        // Find first available model (not rate limited)
-        for (let i = 0; i < MODELS.length; i++) {
-            const modelIndex = (this.currentModelIndex + i) % MODELS.length;
-            const model = MODELS[modelIndex];
-            const state = this.modelStates.get(model)!;
-            
-            if (state.rateLimitedUntil < now) {
-                return model;
-            }
-        }
-        
-        // All models rate limited - return the one that will be available soonest
-        let soonestModel = MODELS[0];
-        let soonestTime = Infinity;
-        
-        for (const model of MODELS) {
-            const state = this.modelStates.get(model)!;
-            if (state.rateLimitedUntil < soonestTime) {
-                soonestTime = state.rateLimitedUntil;
-                soonestModel = model;
-            }
-        }
-        
-        return soonestModel;
+    // Truncated exponential backoff with jitter (Google recommended)
+    private calculateBackoff(attempt: number): number {
+        const delay = Math.min(
+            BACKOFF_CONFIG.initialDelayMs * Math.pow(BACKOFF_CONFIG.multiplier, attempt),
+            BACKOFF_CONFIG.maxDelayMs
+        );
+        // Add jitter to prevent thundering herd
+        const jitter = delay * BACKOFF_CONFIG.jitterFactor * (Math.random() - 0.5) * 2;
+        return Math.floor(delay + jitter);
     }
 
-    private markModelRateLimited(model: string, retryAfterMs: number = 60000): void {
+    private getAvailableModels(): string[] {
+        const now = Date.now();
+        return MODELS.filter(model => {
+            const state = this.modelStates.get(model)!;
+            return state.rateLimitedUntil < now;
+        });
+    }
+
+    private markModelRateLimited(model: string, retryAfterMs: number): void {
         const state = this.modelStates.get(model)!;
         state.rateLimitedUntil = Date.now() + retryAfterMs;
         state.consecutiveFailures++;
-        
-        console.log(`AI Service: Model ${model} rate limited for ${retryAfterMs / 1000}s`);
-        
-        // Move to next model
-        this.currentModelIndex = (MODELS.indexOf(model) + 1) % MODELS.length;
+        console.log(`AI Service: ${model} rate limited for ${Math.ceil(retryAfterMs / 1000)}s`);
     }
 
     private markModelSuccess(model: string): void {
         const state = this.modelStates.get(model)!;
         state.consecutiveFailures = 0;
+        state.rateLimitedUntil = 0;
     }
 
     private getClient(modelName: string, userKey?: string): GenerativeModel {
@@ -91,89 +85,116 @@ export class AIService {
         return genAI.getGenerativeModel({ model: modelName });
     }
 
-    async generateContent(prompt: string, userKey?: string): Promise<string> {
-        const maxRetries = MODELS.length + 1;
-        let lastError: Error | null = null;
+    private extractRetryDelay(errorMessage: string): number | null {
+        // Try to extract retry delay from error message
+        // Format: "retry in X.XXXs" or "retryDelay: Xs"
+        const patterns = [
+            /retry.*?in\s*(\d+\.?\d*)s/i,
+            /retryDelay.*?(\d+)s/i,
+            /(\d+)\s*seconds?/i,
+        ];
+        
+        for (const pattern of patterns) {
+            const match = errorMessage.match(pattern);
+            if (match) {
+                return Math.ceil(parseFloat(match[1]) * 1000);
+            }
+        }
+        return null;
+    }
 
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            const modelName = this.getAvailableModel();
-            const state = this.modelStates.get(modelName)!;
+    async generateContent(prompt: string, userKey?: string): Promise<string> {
+        const maxAttempts = MODELS.length * 2; // Allow retries across models
+        let lastError: Error | null = null;
+        let globalAttempt = 0;
+
+        while (globalAttempt < maxAttempts) {
+            // Get available models (not rate limited)
+            let availableModels = this.getAvailableModels();
             
-            // If model is still rate limited, wait a bit
-            const waitTime = state.rateLimitedUntil - Date.now();
-            if (waitTime > 0 && waitTime < 5000) {
-                await this.sleep(waitTime);
+            // If all models are rate limited, wait for the shortest cooldown
+            if (availableModels.length === 0) {
+                const now = Date.now();
+                let shortestWait = Infinity;
+                let nextModel = MODELS[0];
+                
+                for (const model of MODELS) {
+                    const state = this.modelStates.get(model)!;
+                    const wait = state.rateLimitedUntil - now;
+                    if (wait < shortestWait) {
+                        shortestWait = wait;
+                        nextModel = model;
+                    }
+                }
+                
+                if (shortestWait > 0 && shortestWait < 30000) {
+                    console.log(`AI Service: All models rate limited. Waiting ${Math.ceil(shortestWait / 1000)}s...`);
+                    await this.sleep(shortestWait);
+                }
+                availableModels = [nextModel];
             }
 
-            try {
-                console.log(`AI Service: Trying ${modelName} (attempt ${attempt + 1}/${maxRetries})`);
+            // Try each available model
+            for (const modelName of availableModels) {
+                globalAttempt++;
                 
-                const model = this.getClient(modelName, userKey);
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const text = response.text();
-                
-                this.markModelSuccess(modelName);
-                console.log(`AI Service: Success with ${modelName}`);
-                
-                return text;
-                
-            } catch (error: unknown) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                lastError = error instanceof Error ? error : new Error(errorMessage);
-                
-                // Handle leaked key - critical error, don't retry
-                if (errorMessage.includes('API key was reported as leaked')) {
-                    console.error('CRITICAL: Google API Key was reported as leaked and disabled.');
-                    throw new Error('Sua chave de API do Google foi desativada por segurança (vazamento detectado). Por favor, gere uma nova chave no Google AI Studio.');
-                }
-                
-                // Handle rate limiting (429) - switch to next model
-                if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
-                    // Extract retry delay if provided
-                    const retryMatch = errorMessage.match(/retry.*?(\d+)/i);
-                    const retryAfter = retryMatch ? parseInt(retryMatch[1]) * 1000 : 60000;
+                try {
+                    console.log(`AI Service: Trying ${modelName} (attempt ${globalAttempt}/${maxAttempts})`);
                     
-                    this.markModelRateLimited(modelName, Math.min(retryAfter, 120000));
-                    continue; // Try next model
+                    const model = this.getClient(modelName, userKey);
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    const text = response.text();
+                    
+                    this.markModelSuccess(modelName);
+                    console.log(`AI Service: Success with ${modelName}`);
+                    return text;
+                    
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    lastError = error instanceof Error ? error : new Error(errorMessage);
+                    
+                    // Handle leaked key - critical error, don't retry
+                    if (errorMessage.includes('API key was reported as leaked')) {
+                        console.error('CRITICAL: Google API Key was reported as leaked.');
+                        throw new Error('Sua chave de API do Google foi desativada por segurança. Gere uma nova chave no Google AI Studio.');
+                    }
+                    
+                    // Handle rate limiting (429)
+                    if (errorMessage.includes('429') || errorMessage.includes('quota') || 
+                        errorMessage.includes('Too Many Requests') || errorMessage.includes('Resource exhausted')) {
+                        
+                        // Extract retry delay from response or use exponential backoff
+                        const extractedDelay = this.extractRetryDelay(errorMessage);
+                        const backoffDelay = this.calculateBackoff(this.modelStates.get(modelName)!.consecutiveFailures);
+                        const retryAfter = extractedDelay || backoffDelay;
+                        
+                        this.markModelRateLimited(modelName, Math.min(retryAfter, 120000));
+                        console.log(`AI Service: ${modelName} hit rate limit, switching model...`);
+                        continue; // Try next model
+                    }
+                    
+                    // Handle model not found (404)
+                    if (errorMessage.includes('404') || errorMessage.includes('not found') || 
+                        errorMessage.includes('does not exist')) {
+                        console.warn(`AI Service: ${modelName} not available`);
+                        this.markModelRateLimited(modelName, 600000); // 10 min for unavailable models
+                        continue;
+                    }
+                    
+                    // Other errors - brief cooldown and try next
+                    console.error(`AI Service: ${modelName} error:`, errorMessage.substring(0, 200));
+                    this.markModelRateLimited(modelName, this.calculateBackoff(0));
                 }
-                
-                // Handle model not found (404) - switch to next model
-                if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                    console.warn(`AI Service: Model ${modelName} not available, trying next...`);
-                    this.markModelRateLimited(modelName, 300000); // Mark unavailable for 5 min
-                    continue;
-                }
-                
-                // Other errors - log and try next model
-                console.error(`AI Service Error with ${modelName}:`, errorMessage);
-                this.markModelRateLimited(modelName, 10000); // Brief cooldown
             }
         }
         
         // All retries exhausted
-        throw new Error(`AI generation failed after trying all models. Last error: ${lastError?.message || 'Unknown error'}`);
+        throw new Error(`Falha ao gerar conteúdo após ${maxAttempts} tentativas. Tente novamente em alguns minutos.`);
     }
 
     private sleep(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    // Get current status of all models (for debugging/monitoring)
-    getModelStatus(): Record<string, { available: boolean; rateLimitedFor?: number }> {
-        const now = Date.now();
-        const status: Record<string, { available: boolean; rateLimitedFor?: number }> = {};
-        
-        for (const model of MODELS) {
-            const state = this.modelStates.get(model)!;
-            const rateLimitedFor = Math.max(0, state.rateLimitedUntil - now);
-            status[model] = {
-                available: rateLimitedFor === 0,
-                rateLimitedFor: rateLimitedFor > 0 ? Math.ceil(rateLimitedFor / 1000) : undefined
-            };
-        }
-        
-        return status;
     }
 }
 
