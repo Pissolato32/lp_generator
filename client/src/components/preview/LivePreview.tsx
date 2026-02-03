@@ -58,7 +58,13 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
         
         // Normalize section types and sort by order
         return sections
-            .map(s => ({ ...s, type: normalizeType(s.type) }))
+            .map(s => {
+                const normalizedType = normalizeType(s.type);
+                if (normalizedType === s.type) {
+                    return s;
+                }
+                return { ...s, type: normalizedType };
+            })
             .sort((a, b) => a.order - b.order);
     }, [sections]);
 

@@ -22,3 +22,23 @@
   - Improvement: ~2.8x faster rendering loop.
 
 **Tags:** #react #performance #memoization #editor #frontend
+
+## 2026-05-23 - Unnecessary Object Creation in Array.map Breaks React.memo
+
+**Context:** Despite `HeroSection` and others being wrapped in `React.memo`, performance was degrading. Investigation showed that `LivePreview` was re-normalizing section types on every render using `.map(s => ({ ...s, type: ... }))`.
+
+**Learning:** `Array.map` returning a new object literal `{ ...s }` *always* creates a new object reference, even if the content is identical. This completely defeats `React.memo` on child components because the `section` prop always changes.
+
+**Why it matters:** Referential equality is the foundation of React performance. Innocent-looking transformations like `map` can silently destroy it.
+
+**Action:**
+1. Avoid mapping data just before rendering if possible.
+2. If mapping is needed (e.g. for normalization), strictly return the *original object reference* if no change is actually needed.
+3. Use `if (normalized === original) return original;` pattern.
+
+**Evidence:**
+- Benchmark: 100 sections. Update 1 section.
+- Before: 100 unnecessary object creations (100% cache miss).
+- After: 0 unnecessary object creations (100% cache hit for unchanged items).
+
+**Tags:** #react #performance #referential-equality #antipattern #frontend
