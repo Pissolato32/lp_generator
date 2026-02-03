@@ -163,21 +163,24 @@ export class HybridAgentService {
         const configRaw = result.config || result;
         const explanation = result.plan || result.explanation || "Atualizei a landing page.";
 
+        // Sanitize the data to match expected schema
+        const sanitizedConfig = this.sanitizeConfigData(configRaw);
+
         // 2. Validate with Zod
         // Ensure required fields if missing before validation to help the AI (optional, but good for robustness)
-        if (!configRaw.id) configRaw.id = uuidv4();
-        if (!configRaw.name) configRaw.name = 'Nova Landing Page';
-        if (!configRaw.createdAt) configRaw.createdAt = new Date().toISOString();
-        if (!configRaw.updatedAt) configRaw.updatedAt = new Date().toISOString();
-        if (!configRaw.design) configRaw.design = {
+        if (!sanitizedConfig.id) sanitizedConfig.id = uuidv4();
+        if (!sanitizedConfig.name) sanitizedConfig.name = 'Nova Landing Page';
+        if (!sanitizedConfig.createdAt) sanitizedConfig.createdAt = new Date().toISOString();
+        if (!sanitizedConfig.updatedAt) sanitizedConfig.updatedAt = new Date().toISOString();
+        if (!sanitizedConfig.design) sanitizedConfig.design = {
           primaryColor: '#3b82f6',
           secondaryColor: '#8b5cf6',
           fontFamily: 'Inter',
           buttonStyle: 'rounded'
         };
-        if (!configRaw.integrations) configRaw.integrations = {};
+        if (!sanitizedConfig.integrations) sanitizedConfig.integrations = {};
 
-        const validation = LandingPageConfigSchema.safeParse(configRaw);
+        const validation = LandingPageConfigSchema.safeParse(sanitizedConfig);
 
         if (!validation.success) {
           // Format Zod errors for the LLM
@@ -249,6 +252,186 @@ export class HybridAgentService {
     }
     
     return clean.trim();
+  }
+
+  private sanitizeConfigData(config: any): any {
+    const sanitized = JSON.parse(JSON.stringify(config)); // Deep clone
+
+    // Sanitize name
+    if (!sanitized.name || typeof sanitized.name !== 'string') {
+      sanitized.name = 'Nova Landing Page';
+    }
+
+    // Sanitize sections
+    if (sanitized.sections && Array.isArray(sanitized.sections)) {
+      sanitized.sections = sanitized.sections.map((section: any) => {
+        // Ensure section has required fields
+        if (!section.id) section.id = uuidv4();
+        if (!section.type) section.type = 'hero';
+        if (typeof section.order !== 'number') section.order = 0;
+
+        // Sanitize specific section types
+        switch (section.type) {
+          case 'hero':
+            // Validate variant
+            const validHeroVariants = ['full-width', 'split', 'video-bg', 'vsl'];
+            if (!validHeroVariants.includes(section.variant)) {
+              section.variant = 'full-width'; // Default to valid variant
+            }
+            // Ensure showForm exists
+            if (typeof section.showForm !== 'boolean') {
+              section.showForm = false;
+            }
+            break;
+
+          case 'gallery':
+            // Convert string images to objects if needed
+            if (section.images && Array.isArray(section.images)) {
+              section.images = section.images.map((img: any) => {
+                if (typeof img === 'string') {
+                  return {
+                    id: uuidv4(),
+                    url: img,
+                    alt: 'Image',
+                    caption: ''
+                  };
+                } else if (typeof img === 'object' && img.url) {
+                  if (!img.id) img.id = uuidv4();
+                  if (!img.alt) img.alt = 'Image';
+                  if (!img.caption) img.caption = '';
+                  return img;
+                }
+                return {
+                  id: uuidv4(),
+                  url: 'https://placehold.co/400x300?text=Placeholder',
+                  alt: 'Placeholder',
+                  caption: ''
+                };
+              });
+            }
+            break;
+
+          case 'contact':
+            // Sanitize form fields
+            if (section.formFields && Array.isArray(section.formFields)) {
+              section.formFields = section.formFields.map((field: any) => {
+                if (typeof field === 'object') {
+                  if (!field.id) field.id = uuidv4();
+                  if (!field.label) field.label = 'Field';
+                  if (!field.placeholder) field.placeholder = 'Enter value';
+                  if (typeof field.required !== 'boolean') field.required = false;
+                  if (!field.type) field.type = 'text';
+                  return field;
+                }
+                return {
+                  id: uuidv4(),
+                  type: 'text',
+                  label: 'Field',
+                  placeholder: 'Enter value',
+                  required: false
+                };
+              });
+            }
+            break;
+
+          case 'social-proof':
+            // Sanitize testimonials and logos
+            if (!section.testimonials || !Array.isArray(section.testimonials)) {
+              section.testimonials = [];
+            }
+            if (!section.logos || !Array.isArray(section.logos)) {
+              section.logos = [];
+            }
+            if (typeof section.showRatings !== 'boolean') {
+              section.showRatings = true;
+            }
+            break;
+
+          case 'features':
+            // Sanitize items
+            if (!section.items || !Array.isArray(section.items)) {
+              section.items = [];
+            }
+            if (typeof section.columns !== 'number' || ![2, 3, 4].includes(section.columns)) {
+              section.columns = 3;
+            }
+            break;
+
+          case 'pricing':
+            // Sanitize tiers
+            if (!section.tiers || !Array.isArray(section.tiers)) {
+              section.tiers = [];
+            }
+            break;
+
+          case 'faq':
+            // Sanitize items
+            if (!section.items || !Array.isArray(section.items)) {
+              section.items = [];
+            }
+            break;
+
+          case 'carousel':
+            // Sanitize items
+            if (!section.items || !Array.isArray(section.items)) {
+              section.items = [];
+            }
+            if (typeof section.autoPlay !== 'boolean') {
+              section.autoPlay = true;
+            }
+            break;
+
+          case 'testimonials':
+            // Sanitize testimonials
+            if (!section.testimonials || !Array.isArray(section.testimonials)) {
+              section.testimonials = [];
+            }
+            break;
+
+          case 'cta':
+            if (typeof section.variant !== 'string') {
+              section.variant = 'primary';
+            }
+            break;
+
+          case 'footer':
+            if (!section.socialLinks || !Array.isArray(section.socialLinks)) {
+              section.socialLinks = [];
+            }
+            if (!section.legalLinks || !Array.isArray(section.legalLinks)) {
+              section.legalLinks = [];
+            }
+            if (!section.copyrightText) {
+              section.copyrightText = '© 2026 Your Company. All rights reserved.';
+            }
+            break;
+        }
+
+        return section;
+      });
+    }
+
+    // Sanitize design
+    if (!sanitized.design || typeof sanitized.design !== 'object') {
+      sanitized.design = {
+        primaryColor: '#3b82f6',
+        secondaryColor: '#8b5cf6',
+        fontFamily: 'Inter',
+        buttonStyle: 'rounded'
+      };
+    } else {
+      if (!sanitized.design.primaryColor) sanitized.design.primaryColor = '#3b82f6';
+      if (!sanitized.design.secondaryColor) sanitized.design.secondaryColor = '#8b5cf6';
+      if (!sanitized.design.fontFamily) sanitized.design.fontFamily = 'Inter';
+      if (!sanitized.design.buttonStyle) sanitized.design.buttonStyle = 'rounded';
+    }
+
+    // Sanitize integrations
+    if (!sanitized.integrations || typeof sanitized.integrations !== 'object') {
+      sanitized.integrations = {};
+    }
+
+    return sanitized;
   }
 }
 
