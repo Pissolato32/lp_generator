@@ -25,14 +25,32 @@ app.use(helmet({
 }));
 
 // CORS configuration
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || [];
+console.log('Allowed CORS origins:', allowedOrigins); // Debug
+
 app.use(cors({
     origin: isDev 
         ? true 
         : (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
+            console.log('Request origin:', origin); // Debug para ver o que está chegando
+            
+            // Permite requisições sem origin (ex: mobile apps, Postman)
+            if (!origin) {
+                callback(null, true);
+                return;
+            }
+            
+            // Remove trailing slash para comparação
+            const normalizedOrigin = origin.replace(/\/$/, '');
+            const normalizedAllowed = allowedOrigins.map(o => o.replace(/\/$/, ''));
+            console.log('CORS_ORIGIN env var:', process.env.CORS_ORIGIN);
+            console.log('Parsed allowed origins:', allowedOrigins);
+            
+            if (normalizedAllowed.includes(normalizedOrigin)) {
                 callback(null, true);
             } else {
+                console.error('CORS blocked origin:', origin);
+                console.error('Allowed origins:', allowedOrigins);
                 callback(new Error('Not allowed by CORS'));
             }
         },
