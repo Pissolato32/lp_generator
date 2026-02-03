@@ -1,17 +1,19 @@
 import { useState, useMemo } from 'react';
-import { Settings, Palette, Download, CheckCircle2, Code, Copy, Check } from 'lucide-react';
+import { Settings, Palette, Download, CheckCircle2, Code, Copy, Check, Image as ImageIcon, Figma } from 'lucide-react';
 import { useLPEditor } from '../../hooks/useLPEditor';
 import { SectionList } from './SectionList';
 import { HeroEditor } from './HeroEditor';
 import { SocialProofEditor } from './SocialProofEditor';
 import { generateHTML } from '../../utils/htmlGenerator';
+import { generateFigmaJSON } from '../../utils/figmaGenerator';
+import { ImageGenerator } from './ImageGenerator';
 
 interface EditorSidebarProps {
     selectedSectionId?: string;
     onSectionSelect: (sectionId: string) => void;
 }
 
-type Tab = 'sections' | 'content' | 'design' | 'code' | 'integrations' | 'export';
+type Tab = 'sections' | 'content' | 'design' | 'media' | 'code' | 'integrations' | 'export';
 
 export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSidebarProps) {
     const [activeTab, setActiveTab] = useState<Tab>('sections');
@@ -24,6 +26,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
     );
 
     const htmlCode = useMemo(() => generateHTML(config), [config]);
+    const figmaCode = useMemo(() => generateFigmaJSON(config), [config]);
 
     const handleExport = () => {
         const configStr = JSON.stringify(config, null, 2);
@@ -44,6 +47,18 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
         const a = document.createElement('a');
         a.href = url;
         a.download = `index.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleExportFigma = () => {
+        const blob = new Blob([figmaCode], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `figma-schema.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -91,6 +106,16 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                 >
                     <Palette size={18} className="inline mr-2" />
                     Design
+                </button>
+                <button
+                    onClick={() => setActiveTab('media')}
+                    className={`flex-1 px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'media'
+                        ? 'text-blue-600 border-blue-600 bg-blue-50/30'
+                        : 'text-gray-400 border-transparent hover:text-gray-600 hover:bg-gray-50'
+                        }`}
+                >
+                    <ImageIcon size={18} className="inline mr-2" />
+                    Mídia
                 </button>
                 <button
                     onClick={() => setActiveTab('code')}
@@ -152,6 +177,12 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                     </div>
                 )}
 
+                {activeTab === 'media' && (
+                    <div className="p-6 md:p-8 animate-in fade-in slide-in-from-left-4 duration-300">
+                        <ImageGenerator isPremium={false} />
+                    </div>
+                )}
+
                 {activeTab === 'code' && (
                     <div className="p-6 md:p-8 h-full flex flex-col animate-in fade-in slide-in-from-left-4 duration-300">
                          <div className="flex items-center justify-between mb-4">
@@ -160,6 +191,7 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                                 <p className="text-sm text-gray-500 mt-1">Código gerado pronto para produção</p>
                             </div>
                             <button
+                                onClick={() => { void handleCopyCode(); }}
                                 onClick={() => void handleCopyCode()}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                                     copied
@@ -286,6 +318,14 @@ export function EditorSidebar({ selectedSectionId, onSectionSelect }: EditorSide
                             >
                                 <Code size={22} className="group-hover:-translate-y-1 transition-transform" />
                                 Exportar HTML Website
+                            </button>
+
+                            <button
+                                onClick={handleExportFigma}
+                                className="w-full py-5 bg-gray-900 border-2 border-transparent text-white rounded-2xl font-black shadow-lg hover:shadow-2xl hover:bg-black hover:scale-[1.02] transition-all flex items-center justify-center gap-3 group"
+                            >
+                                <Figma size={22} className="group-hover:-translate-y-1 transition-transform" />
+                                Exportar Figma Schema
                             </button>
                             
                             <p className="text-[10px] text-center text-gray-400 font-bold uppercase tracking-[0.2em]">
