@@ -183,11 +183,16 @@ export class HybridAgentService {
         const validation = LandingPageConfigSchema.safeParse(sanitizedConfig);
 
         if (!validation.success) {
-          // Format Zod errors for the LLM
-          const errorMessages = validation.error.errors.map(err => {
+        // ADICIONE ESTES LOGS DETALHADOS:
+        console.error('[HybridAgent] Validation failed!');
+        console.error('[HybridAgent] Sanitized config:', JSON.stringify(sanitizedConfig, null, 2));
+        console.error('[HybridAgent] Validation errors:', JSON.stringify(validation.error.errors, null, 2));
+        
+        // Format Zod errors for the LLM
+        const errorMessages = validation.error.errors.map(err => {
             return `Path: ${err.path.join('.')}, Message: ${err.message}`;
-          }).join('\n');
-          throw new Error(`Schema Validation Failed:\n${errorMessages}`);
+        }).join('\n');
+        throw new Error(`Schema Validation Failed:\n${errorMessages}`);
         }
 
         // Success!
