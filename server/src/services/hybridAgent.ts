@@ -88,7 +88,7 @@ export class HybridAgentService {
 
     return {
       id: uuidv4(),
-      name: message.substring(0, 50),
+      name: message.substring(0, 50) || 'Nova Landing Page',
       sections,
       design: {
         primaryColor: '#3b82f6',
@@ -164,10 +164,18 @@ export class HybridAgentService {
         const explanation = result.plan || result.explanation || "Atualizei a landing page.";
 
         // 2. Validate with Zod
-        // Ensure basic fields if missing before validation to help the AI (optional, but good for robustness)
+        // Ensure required fields if missing before validation to help the AI (optional, but good for robustness)
         if (!configRaw.id) configRaw.id = uuidv4();
+        if (!configRaw.name) configRaw.name = 'Nova Landing Page';
         if (!configRaw.createdAt) configRaw.createdAt = new Date().toISOString();
         if (!configRaw.updatedAt) configRaw.updatedAt = new Date().toISOString();
+        if (!configRaw.design) configRaw.design = {
+          primaryColor: '#3b82f6',
+          secondaryColor: '#8b5cf6',
+          fontFamily: 'Inter',
+          buttonStyle: 'rounded'
+        };
+        if (!configRaw.integrations) configRaw.integrations = {};
 
         const validation = LandingPageConfigSchema.safeParse(configRaw);
 

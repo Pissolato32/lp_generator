@@ -16,7 +16,8 @@ const port = process.env.PORT || 3001;
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Trust proxy for Render (handles rate limiter X-Forwarded-For)
-app.set('trust proxy', true);
+// Set trust proxy level to be more secure
+app.set('trust proxy', 1); // Only trust first proxy
 
 // Security middleware
 app.use(helmet({
