@@ -1,5 +1,19 @@
 import { useMemo } from 'react';
-import type { Section } from '../../types';
+import type { 
+    Section, 
+    SectionType,
+    HeroSection as HeroSectionType,
+    SocialProofSection as SocialProofSectionType,
+    FAQSection as FAQSectionType,
+    PricingSection as PricingSectionType,
+    ContactSection as ContactSectionType,
+    FeaturesSection as FeaturesSectionType,
+    GallerySection as GallerySectionType,
+    CarouselSection as CarouselSectionType,
+    TestimonialsSection as TestimonialsSectionType,
+    CtaSection as CtaSectionType,
+    FooterSection as FooterSectionType,
+} from '../../types';
 import { HeroSection } from '../sections/HeroSection';
 import { SocialProofSection } from '../sections/SocialProofSection';
 import { ContactSection } from '../sections/ContactSection';
@@ -18,17 +32,34 @@ interface LivePreviewProps {
     onSectionClick?: (sectionId: string) => void;
 }
 
+// Normalize AI-generated section types (e.g., "HeroSection" -> "hero")
+function normalizeType(type: string): SectionType {
+    const normalized = type.replace(/Section$/i, '').toLowerCase();
+    const validTypes: Record<string, SectionType> = {
+        'hero': 'hero',
+        'social-proof': 'social-proof',
+        'socialproof': 'social-proof',
+        'faq': 'faq',
+        'pricing': 'pricing',
+        'contact': 'contact',
+        'features': 'features',
+        'gallery': 'gallery',
+        'carousel': 'carousel',
+        'testimonials': 'testimonials',
+        'cta': 'cta',
+        'footer': 'footer',
+    };
+    return validTypes[normalized] ?? (normalized as SectionType);
+}
+
 export function LivePreview({ sections, primaryColor, onSectionClick }: LivePreviewProps) {
     const sortedSections = useMemo(() => {
         if (!sections || !Array.isArray(sections)) return [];
         
-        // Normaliza os tipos das seções caso a IA use nomes de interfaces
-        const normalized = sections.map(s => ({
-            ...s,
-            type: s.type.replace(/Section$/i, '').toLowerCase() as any
-        }));
-
-        return [...normalized].sort((a, b) => a.order - b.order);
+        // Normalize section types and sort by order
+        return sections
+            .map(s => ({ ...s, type: normalizeType(s.type) }))
+            .sort((a, b) => a.order - b.order);
     }, [sections]);
 
     return (
@@ -57,47 +88,47 @@ export function LivePreview({ sections, primaryColor, onSectionClick }: LivePrev
                         </div>
 
                         {section.type === 'hero' && (
-                            <HeroSection section={section as any} primaryColor={primaryColor} />
+                            <HeroSection section={section as HeroSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'social-proof' && (
-                            <SocialProofSection section={section as any} primaryColor={primaryColor} />
+                            <SocialProofSection section={section as SocialProofSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'faq' && (
-                            <FaqSection section={section as any} primaryColor={primaryColor} />
+                            <FaqSection section={section as FAQSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'pricing' && (
-                            <PricingSection section={section as any} primaryColor={primaryColor} />
+                            <PricingSection section={section as PricingSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'contact' && (
-                            <ContactSection section={section as any} primaryColor={primaryColor} />
+                            <ContactSection section={section as ContactSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'features' && (
-                            <FeaturesSection section={section as any} primaryColor={primaryColor} />
+                            <FeaturesSection section={section as FeaturesSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'gallery' && (
-                            <GallerySection section={section as any} primaryColor={primaryColor} />
+                            <GallerySection section={section as GallerySectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'carousel' && (
-                            <CarouselSection section={section as any} primaryColor={primaryColor} />
+                            <CarouselSection section={section as CarouselSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'testimonials' && (
-                            <TestimonialsSection section={section as any} primaryColor={primaryColor} />
+                            <TestimonialsSection section={section as TestimonialsSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'cta' && (
-                            <CtaSection section={section as any} primaryColor={primaryColor} />
+                            <CtaSection section={section as CtaSectionType} primaryColor={primaryColor} />
                         )}
 
                         {section.type === 'footer' && (
-                            <FooterSection section={section as any} primaryColor={primaryColor} />
+                            <FooterSection section={section as FooterSectionType} primaryColor={primaryColor} />
                         )}
 
                         {/* Fallback para tipos não mapeados ou renderização vazia */}

@@ -32,8 +32,8 @@ export const TestimonialsSection = memo(function TestimonialsSection({ section }
                     {section.testimonials?.map((t) => (
                         <div key={t.id} className="p-8 rounded-3xl bg-white border border-gray-100 shadow-sm transition-all hover:shadow-xl hover:shadow-gray-200/50">
                             <div className="flex gap-1 mb-6">
-                                {[...Array(t.rating ?? 5)].map((_, i) => (
-                                    <Star key={`star-${i}`} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                                {Array.from({ length: t.rating ?? 5 }, (_, i) => (
+                                    <Star key={`star-${t.id}-${i}`} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                                 ))}
                             </div>
                             <p className="text-gray-700 leading-relaxed mb-8 italic">

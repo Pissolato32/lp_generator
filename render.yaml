@@ -1,0 +1,25 @@
+# Render.yaml - Deployment configuration for Render.com
+# Deploy server as a web service
+
+services:
+  - type: web
+    name: lp-generator-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_MAX
+        value: 30
+      - key: USE_REDIS
+        value: false

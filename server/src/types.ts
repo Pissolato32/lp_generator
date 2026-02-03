@@ -1,4 +1,5 @@
-// Tipos principais para o Gerador de Landing Page
+// Shared types for server-side processing
+// Copied from client/src/types/index.ts to avoid import conflicts
 
 export type SectionType =
     | 'hero'
@@ -9,6 +10,8 @@ export type SectionType =
     | 'features'
     | 'gallery'
     | 'carousel'
+    | 'testimonials'
+    | 'cta'
     | 'footer';
 
 export type HeroVariant = 'full-width' | 'split' | 'video-bg' | 'vsl';

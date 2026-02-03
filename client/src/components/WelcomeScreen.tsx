@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Send, Key, Loader2, Sparkles } from 'lucide-react';
 
 interface WelcomeScreenProps {
@@ -24,10 +24,10 @@ export function WelcomeScreen({ onStart, isLoading }: WelcomeScreenProps) {
     const [userKey, setUserKey] = useState('');
     const [showKeyInput, setShowKeyInput] = useState(false);
 
-    // Seleciona um placeholder aleatório apenas uma vez ao montar
-    const randomPlaceholder = useMemo(() => {
-        return PLACEHOLDER_TIPS[Math.floor(Math.random() * PLACEHOLDER_TIPS.length)];
-    }, []);
+    // Random placeholder selected once on mount using lazy state initialization
+    const [randomPlaceholder] = useState(() => 
+        PLACEHOLDER_TIPS[Math.floor(Math.random() * PLACEHOLDER_TIPS.length)]
+    );
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
