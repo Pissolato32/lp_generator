@@ -55,10 +55,13 @@ function normalizeType(type: string): SectionType {
 export function LivePreview({ sections, primaryColor, onSectionClick }: LivePreviewProps) {
     const sortedSections = useMemo(() => {
         if (!sections || !Array.isArray(sections)) return [];
-        
+
         // Normalize section types and sort by order
         return sections
-            .map(s => ({ ...s, type: normalizeType(s.type) }))
+            .map(s => {
+                const normalizedType = normalizeType(s.type);
+                return normalizedType === s.type ? s : { ...s, type: normalizedType };
+            })
             .sort((a, b) => a.order - b.order);
     }, [sections]);
 

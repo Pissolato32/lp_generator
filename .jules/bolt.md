@@ -1,24 +1,24 @@
-## 2024-05-23 - React.memo on Landing Page Sections
 
-**Context:** The `LivePreview` component renders a list of landing page sections (Hero, Features, etc.) based on a configuration state. Whenever any section changed (or the primary color), *all* sections were re-rendering, even if their props hadn't changed.
+## 2026-05-24 - LivePreview Referential Integrity Optimization
 
-**Learning:** `React.memo` is highly effective here because:
-1. The parent (`LivePreview`) re-renders frequently (on every edit).
-2. The `sections` prop is a new array reference (due to immutable reducer updates).
-3. However, the *individual items* in the array are referentially stable for unchanged sections (thanks to the reducer implementation using `map` and only updating the target ID).
-4. `React.memo` (shallow comparison) correctly identifies that `section` prop hasn't changed for 19 out of 20 sections, skipping their re-render.
+**Context:** The `LivePreview` component was re-rendering all sections whenever the configuration changed, even if only one section was updated. This was caused by `useMemo` creating new object references for *every* section during a type normalization step, regardless of whether the normalization was needed.
 
-**Why it matters:** In a "drag-and-drop" or "live editor" interface, responsiveness is key. Re-rendering the entire page on every keystroke causes input lag.
+**Learning:** Even inside `useMemo`, mapping over an array with object spread (`{ ...s }`) breaks referential equality for every item. This defeats `React.memo` on child components.
 
-**Action:** When building list-based editors where items are updated individually:
-1. Ensure the reducer/state update logic preserves references for unchanged items.
-2. Memoize the list item components.
-3. Memoize the `LivePreview` list rendering logic (or the mapped components).
+**Why it matters:** In a large list of complex components (like landing page sections), re-rendering everything on every keystroke causes significant lag. Preserving references allows `React.memo` to skip work for unchanged items.
 
-**Evidence:**
-- Synthetic benchmark simulating 50 sections re-rendering 100 times:
-  - Unmemoized: ~340ms
-  - Memoized: ~120ms
-  - Improvement: ~2.8x faster rendering loop.
+**Action:** When normalizing or transforming lists in `useMemo`, conditionally return the *original* object if the transformation result is identical to the input.
+```typescript
+// Bad
+return list.map(item => ({ ...item, prop: normalize(item.prop) }));
 
-**Tags:** #react #performance #memoization #editor #frontend
+// Good
+return list.map(item => {
+    const normalized = normalize(item.prop);
+    return normalized === item.prop ? item : { ...item, prop: normalized };
+});
+```
+
+**Evidence:** Verified with `client/benchmarks/verify_fix.ts` that reference stability improved from `false` to `true` for unchanged items.
+
+**Tags:** #react #performance #memoization #frontend
